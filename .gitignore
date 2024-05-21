@@ -1,0 +1,4 @@
+/bazel-bin
+/bazel-debt-simplification
+/bazel-out
+/bazel-testlogs
