@@ -1,6 +1,7 @@
 #include <stdio.h>
 
-#include "debt_graph.h"
+#include "src/debt_graph.h"
+#include "src/debts.pb.h"
 
 int main() {
   printf("test\n");

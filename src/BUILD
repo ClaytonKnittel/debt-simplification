@@ -1,8 +1,11 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
 cc_binary(
   name = "main",
   srcs = ["main.cc"],
   deps = [
     ":debt_graph",
+    ":debts_cc_proto",
   ],
 )
 
@@ -21,5 +24,17 @@ cc_test(
   deps = [
     ":debt_graph",
     "@googletest//:gtest_main",
+  ],
+)
+
+proto_library(
+  name = "debts_proto",
+  srcs = ["debts.proto"],
+)
+
+cc_proto_library(
+  name = "debts_cc_proto",
+  deps = [
+    ":debts_proto",
   ],
 )

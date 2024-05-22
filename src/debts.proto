@@ -1,0 +1,5 @@
+
+message DebtList {
+  // The count of distinct people in the debt graph.
+  optional int32 people = 1;
+}
