@@ -4,5 +4,5 @@
 
 class DebtGraph {
  private:
-  int guys;
+  absl::flat_hash_map<int, int> guys;
 };
