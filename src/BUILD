@@ -17,6 +17,8 @@ cc_library(
     ":utils",
     "@abseil-cpp//absl/container:flat_hash_map",
     "@abseil-cpp//absl/status:statusor",
+    "@abseil-cpp//absl/strings:str_format",
+    "@abseil-cpp//absl/strings:string_view",
   ],
 )
 
@@ -25,7 +27,9 @@ cc_test(
   srcs = ["debt_graph_test.cc"],
   deps = [
     ":debt_graph",
+    ":utils",
     "@googletest//:gtest_main",
+    "@protobuf//:protobuf",
   ],
 )
 
@@ -46,5 +50,6 @@ cc_library(
   hdrs = ["utils.h"],
   deps = [
     "@abseil-cpp//absl/status",
+    "@googletest//:gtest",
   ],
 )

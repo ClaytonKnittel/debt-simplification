@@ -18,6 +18,6 @@ git_override(
 
 bazel_dep(name = "abseil-cpp", version = "20240116.2")
 
-bazel_dep(name = "googletest", version = "1.14.0.bcr.1", dev_dependency = True)
+bazel_dep(name = "googletest", version = "1.14.0.bcr.1")
 
 bazel_dep(name = "protobuf", version = "26.0")
