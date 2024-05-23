@@ -5,7 +5,6 @@ cc_binary(
   srcs = ["main.cc"],
   deps = [
     ":debt_graph",
-    ":debts_cc_proto",
   ],
 )
 
@@ -14,7 +13,10 @@ cc_library(
   hdrs = ["debt_graph.h"],
   srcs = ["debt_graph.cc"],
   deps = [
+    ":debts_cc_proto",
+    ":utils",
     "@abseil-cpp//absl/container:flat_hash_map",
+    "@abseil-cpp//absl/status:statusor",
   ],
 )
 
@@ -36,5 +38,13 @@ cc_proto_library(
   name = "debts_cc_proto",
   deps = [
     ":debts_proto",
+  ],
+)
+
+cc_library(
+  name = "utils",
+  hdrs = ["utils.h"],
+  deps = [
+    "@abseil-cpp//absl/status",
   ],
 )

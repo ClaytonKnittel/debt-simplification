@@ -83,22 +83,15 @@ IfMacros:
   - KJ_IF_MAYBE
 IncludeBlocks:   Regroup
 IncludeCategories:
-  - Regex:           '^<g2d/.*\.h>'
-    Priority:        3
-    SortPriority:    0
-    CaseSensitive:   false
-  - Regex:           '^<.*\.h>'
+  - Regex:           '^<.*>'
     Priority:        1
-    SortPriority:    0
-    CaseSensitive:   false
-  - Regex:           '^<.*'
+    CaseSensitive:   true
+  - Regex:           '^"absl/.*\.h"'
     Priority:        2
-    SortPriority:    0
-    CaseSensitive:   false
-  - Regex:           '.*'
-    Priority:        4
-    SortPriority:    0
-    CaseSensitive:   false
+    CaseSensitive:   true
+  - Regex:           '".*\.h"'
+    Priority:        3
+    CaseSensitive:   true
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IncludeIsMainSourceRegex: ''
 IndentAccessModifiers: false
