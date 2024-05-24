@@ -39,6 +39,17 @@ cc_test(
   ],
 )
 
+cc_library(
+  name = "expense_simplifier",
+  copts = COPTS,
+  hdrs = ["expense_simplifier.h"],
+  srcs = ["expense_simplifier.cc"],
+  deps = [
+    ":debt_graph",
+    ":debts_cc_proto",
+  ],
+)
+
 proto_library(
   name = "debts_proto",
   srcs = ["debts.proto"],
