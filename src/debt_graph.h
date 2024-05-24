@@ -27,7 +27,12 @@ class DebtGraphNode {
 };
 
 class DebtGraph {
+  friend class TestDebtGraph;
+
  public:
+  DebtGraph(const DebtGraph&) = default;
+  DebtGraph& operator=(const DebtGraph&) = default;
+
   static absl::StatusOr<DebtGraph> BuildFromProto(const DebtList& debt_list);
 
   // Returns the amount of money `receiver` owes `lender`.

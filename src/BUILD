@@ -1,7 +1,9 @@
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("//build_defs:cpp_opts.bzl", "COPTS")
 
 cc_binary(
   name = "main",
+  copts = COPTS,
   srcs = ["main.cc"],
   deps = [
     ":debt_graph",
@@ -10,6 +12,7 @@ cc_binary(
 
 cc_library(
   name = "debt_graph",
+  copts = COPTS,
   hdrs = ["debt_graph.h"],
   srcs = ["debt_graph.cc"],
   deps = [
@@ -24,6 +27,7 @@ cc_library(
 
 cc_test(
   name = "debt_graph_test",
+  size = "small",
   srcs = ["debt_graph_test.cc"],
   deps = [
     ":debt_graph",
@@ -49,9 +53,12 @@ cc_proto_library(
 
 cc_library(
   name = "utils",
+  copts = COPTS,
   hdrs = ["utils.h"],
   deps = [
     "@abseil-cpp//absl/status",
+    "@abseil-cpp//absl/status:statusor",
+    "@abseil-cpp//absl/strings",
     "@googletest//:gtest",
   ],
 )
