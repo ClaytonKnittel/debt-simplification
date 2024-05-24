@@ -28,6 +28,8 @@ cc_test(
   deps = [
     ":debt_graph",
     ":utils",
+    "@abseil-cpp//absl/strings:str_format",
+    "@abseil-cpp//absl/strings:string_view",
     "@googletest//:gtest_main",
     "@protobuf//:protobuf",
   ],
