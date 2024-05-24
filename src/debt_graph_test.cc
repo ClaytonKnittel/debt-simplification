@@ -11,7 +11,6 @@
 namespace debt_simpl {
 
 using google::protobuf::TextFormat;
-using ::testing::Eq;
 using ::testing::Not;
 
 class TestDebtGraph : public ::testing::Test {
@@ -42,8 +41,8 @@ TEST_F(TestDebtGraph, SingleTransaction) {
       cents: 100
     })"));
 
-  EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(Eq(100)));
-  EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(Eq(-100)));
+  EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(100));
+  EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(-100));
 }
 
 TEST_F(TestDebtGraph, DebtsCombine) {
@@ -60,8 +59,8 @@ TEST_F(TestDebtGraph, DebtsCombine) {
       cents: 500
     })"));
 
-  EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(Eq(1500)));
-  EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(Eq(-1500)));
+  EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(1500));
+  EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(-1500));
 }
 
 TEST_F(TestDebtGraph, DebtAndCreditCancel) {
@@ -78,8 +77,8 @@ TEST_F(TestDebtGraph, DebtAndCreditCancel) {
       cents: 150
     })"));
 
-  EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(Eq(50)));
-  EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(Eq(-50)));
+  EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(50));
+  EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(-50));
 }
 
 TEST_F(TestDebtGraph, UnknownUser) {
@@ -91,9 +90,28 @@ TEST_F(TestDebtGraph, UnknownUser) {
       cents: 200
     })"));
 
-  EXPECT_THAT(graph.AmountOwed("x", "y"), IsOkAndHolds(Eq(200)));
+  EXPECT_THAT(graph.AmountOwed("x", "y"), IsOkAndHolds(200));
   EXPECT_THAT(graph.AmountOwed("x", "z"), Not(IsOk()));
   EXPECT_THAT(graph.AmountOwed("z", "y"), Not(IsOk()));
+}
+
+TEST_F(TestDebtGraph, TwoTransactions) {
+  DebtGraph graph = EmptyDebtGraph();
+  ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
+    transactions {
+      lender: "alice"
+      receiver: "bob"
+      cents: 100
+    }
+    transactions {
+      lender: "bob"
+      receiver: "joe"
+      cents: 50
+    })"));
+
+  EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(100));
+  EXPECT_THAT(graph.AmountOwed("bob", "joe"), IsOkAndHolds(50));
+  EXPECT_THAT(graph.AmountOwed("alice", "joe"), IsOkAndHolds(0));
 }
 
 }  // namespace debt_simpl
