@@ -14,7 +14,8 @@ bool operator==(const LayeredGraphNode& a, const LayeredGraphNode& b) {
   }
   switch (a.type) {
     case LayeredGraphNodeType::Head: {
-      return a.head.id == b.head.id && a.head.level == b.head.level;
+      return a.head.id == b.head.id &&
+             a.head._internal_level == b.head._internal_level;
     }
     case LayeredGraphNodeType::Neighbor: {
       return a.neighbor.neighbor_head_idx == b.neighbor.neighbor_head_idx &&
@@ -33,7 +34,7 @@ const DebtGraph& ExpenseSimplifier::MinimalTransactions() const {
   return simplified_expenses_;
 }
 
-std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
+std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructBlockingFlow(
     uint64_t source, uint64_t sink) const {
   std::vector<LayeredGraphNode> layered_graph;
   std::deque<std::pair<uint64_t, uint32_t>> id_q;
@@ -56,9 +57,9 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
       break;
     }
 
-    layered_graph.push_back(
-        LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                          .head = { .id = node_id, .level = depth } });
+    layered_graph.push_back(LayeredGraphNode{
+        .type = LayeredGraphNodeType::Head,
+        .head = { .id = node_id, ._internal_level = depth } });
     for (const auto& [neighbor_id, capacity] : graph_.AllDebts(node_id)) {
       if (capacity == 0) {
         continue;
@@ -93,9 +94,9 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
 
   // Manually add the sink node since it was never explored.
   if (sink_depth != UINT32_MAX) {
-    layered_graph.push_back(
-        LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                          .head = { .id = sink, .level = sink_depth } });
+    layered_graph.push_back(LayeredGraphNode{
+        .type = LayeredGraphNodeType::Head,
+        .head = { .id = sink, ._internal_level = sink_depth } });
   }
 
   // Remove all visited nodes with depth == sink_depth, except for the sink.
@@ -201,6 +202,13 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
   }
   layered_graph.resize(layered_graph.size() - num_tombstones);
   layered_graph.shrink_to_fit();
+
+  // Now construct a blocking flow on the graph.
+  std::vector<std::pair<uint64_t, uint64_t>> stack;
+  while (!stack.empty()) {
+    const auto [node_id, max_flow] = stack.back();
+    stack.pop_back();
+  }
 
   return layered_graph;
 }

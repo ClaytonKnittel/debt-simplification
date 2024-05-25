@@ -50,16 +50,13 @@ int main() {
   debt_simpl::ExpenseSimplifier solver =
       debt_simpl::ExpenseSimplifier(std::move(res.value()));
 
-  const auto layered_graph = solver.ConstructLayeredGraph(eunice_id, bob_id);
-  const std::vector expected_result = { debt_simpl::LayeredGraphNode{
-      .type = debt_simpl::LayeredGraphNodeType::Head,
-      .head = { .id = 0, .level = 0 } } };
+  const auto layered_graph = solver.ConstructBlockingFlow(eunice_id, bob_id);
 
   std::cout << "layered graph:" << std::endl;
   for (const auto& node : layered_graph) {
     switch (node.type) {
       case debt_simpl::LayeredGraphNodeType::Head: {
-        std::cout << "Head: " << node.head.id << " (" << node.head.level << ")"
+        std::cout << "Head: " << node.head.id << " (" << node.head.flow << ")"
                   << std::endl;
         break;
       }

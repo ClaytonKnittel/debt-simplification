@@ -25,9 +25,16 @@ struct LayeredGraphNode {
       // the neighbors of this user.
       uint64_t id;
 
-      // The level of this node, i.e. the distance between this node and the
-      // source node. This == 0 for the source node.
-      uint32_t level;
+      union {
+        // The level of this node, i.e. the distance between this node and the
+        // source node. This == 0 for the source node. This is only meaningful
+        // during the construction of the layered graph and will not be defined
+        // in the graph produced by `ConstructLayeredGraph()`.
+        uint32_t _internal_level;
+
+        // The flow going through this node.
+        uint64_t flow;
+      };
     } head;
 
     // Members are defined if `type` == Neighbor.
@@ -59,8 +66,15 @@ class ExpenseSimplifier {
 
  public:
   // Constructs a layered graph from `source` to `sink` using only edges on the
-  // shortest paths from `source` to `sink` in `graph_`.
-  std::vector<LayeredGraphNode> ConstructLayeredGraph(uint64_t source,
+  // shortest paths from `source` to `sink` in `graph_`, then computes a
+  // blocking flow on the resulting DAG.
+  //
+  // The return value is a vector of `LayeredGraphNode`s, which are either
+  // `Header`s or `Neighbor`s. Each header is followed by some number of
+  // neighbors, which are the corresponding neighbors of the node associated
+  // with that header. Those neighbor nodes point to the index into this vector
+  // of the header of the neighbor node.
+  std::vector<LayeredGraphNode> ConstructBlockingFlow(uint64_t source,
                                                       uint64_t sink) const;
 
   DebtGraph simplified_expenses_;

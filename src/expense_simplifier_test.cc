@@ -31,9 +31,9 @@ class TestExpenseSimplifier : public ::testing::Test {
   }
 };
 
-class TestLayeredGraph : public TestExpenseSimplifier {};
+class TestBlockingFlow : public TestExpenseSimplifier {};
 
-TEST_F(TestLayeredGraph, TestSingleTransaction) {
+TEST_F(TestBlockingFlow, TestSingleTransaction) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
       lender: "alice"
@@ -46,19 +46,19 @@ TEST_F(TestLayeredGraph, TestSingleTransaction) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructLayeredGraph(bob_id, alice_id);
+  const auto layered_graph = solver.ConstructBlockingFlow(bob_id, alice_id);
   const std::vector expected_result = {
     LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                      .head = { .id = bob_id, .level = 0 } },
+                      .head = { .id = bob_id, .flow = 100 } },
     LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
                       .neighbor = { .neighbor_head_idx = 2, .capacity = 100 } },
     LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                      .head = { .id = alice_id, .level = 1 } }
+                      .head = { .id = alice_id, .flow = 0 } }
   };
   EXPECT_THAT(layered_graph, ContainerEq(expected_result));
 }
 
-TEST_F(TestLayeredGraph, TestNoPath) {
+TEST_F(TestBlockingFlow, TestNoPath) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
       lender: "alice"
@@ -76,11 +76,11 @@ TEST_F(TestLayeredGraph, TestNoPath) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructLayeredGraph(joe_id, alice_id);
+  const auto layered_graph = solver.ConstructBlockingFlow(joe_id, alice_id);
   EXPECT_THAT(layered_graph, ContainerEq(std::vector<LayeredGraphNode>()));
 }
 
-TEST_F(TestLayeredGraph, TestTwoPaths) {
+TEST_F(TestBlockingFlow, TestTwoPaths) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
       lender: "bob"
@@ -110,37 +110,37 @@ TEST_F(TestLayeredGraph, TestTwoPaths) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructLayeredGraph(eunice_id, bob_id);
+  const auto layered_graph = solver.ConstructBlockingFlow(eunice_id, bob_id);
   ASSERT_EQ(layered_graph.size(), 3 + 2 + 2 + 1);
 
   EXPECT_EQ(layered_graph[0],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = eunice_id, .level = 0 } }));
+                               .head = { .id = eunice_id, .flow = 100 } }));
   EXPECT_EQ(layered_graph[1].type, LayeredGraphNodeType::Neighbor);
   EXPECT_EQ(layered_graph[2].type, LayeredGraphNodeType::Neighbor);
 
   EXPECT_THAT(
       layered_graph[3],
       AnyOf(Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                                 .head = { .id = alice_id, .level = 1 } }),
+                                 .head = { .id = alice_id, .flow = 100 } }),
             Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                                 .head = { .id = joe_id, .level = 1 } })));
+                                 .head = { .id = joe_id, .flow = 100 } })));
   EXPECT_EQ(layered_graph[4].type, LayeredGraphNodeType::Neighbor);
 
   EXPECT_THAT(
       layered_graph[5],
       AnyOf(Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                                 .head = { .id = alice_id, .level = 1 } }),
+                                 .head = { .id = alice_id, .flow = 100 } }),
             Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                                 .head = { .id = joe_id, .level = 1 } })));
+                                 .head = { .id = joe_id, .flow = 100 } })));
   EXPECT_EQ(layered_graph[6].type, LayeredGraphNodeType::Neighbor);
 
   EXPECT_EQ(layered_graph[7],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = bob_id, .level = 2 } }));
+                               .head = { .id = bob_id, .flow = 0 } }));
 }
 
-TEST_F(TestLayeredGraph, TestPrunePaths) {
+TEST_F(TestBlockingFlow, TestPrunePaths) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
       lender: "bob"
@@ -169,12 +169,12 @@ TEST_F(TestLayeredGraph, TestPrunePaths) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructLayeredGraph(eunice_id, bob_id);
+  const auto layered_graph = solver.ConstructBlockingFlow(eunice_id, bob_id);
   ASSERT_EQ(layered_graph.size(), 2 + 2 + 1);
 
   EXPECT_EQ(layered_graph[0],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = eunice_id, .level = 0 } }));
+                               .head = { .id = eunice_id, .flow = 50 } }));
   EXPECT_EQ(layered_graph[1],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
                                .neighbor = {
@@ -184,7 +184,7 @@ TEST_F(TestLayeredGraph, TestPrunePaths) {
 
   EXPECT_EQ(layered_graph[2],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = alice_id, .level = 1 } }));
+                               .head = { .id = alice_id, .flow = 50 } }));
   EXPECT_EQ(layered_graph[3],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
                                .neighbor = {
@@ -194,7 +194,7 @@ TEST_F(TestLayeredGraph, TestPrunePaths) {
 
   EXPECT_EQ(layered_graph[4],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = bob_id, .level = 2 } }));
+                               .head = { .id = bob_id, .flow = 0 } }));
 }
 
 }  // namespace debt_simpl
