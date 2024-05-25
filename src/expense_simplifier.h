@@ -10,6 +10,9 @@ namespace debt_simpl {
 enum class LayeredGraphNodeType {
   Head,
   Neighbor,
+  // Used temporarily in construction of the layered graph to mark a node as
+  // ready for deletion.
+  Tombstone,
 };
 
 struct LayeredGraphNode {
@@ -30,7 +33,7 @@ struct LayeredGraphNode {
     // Members are defined if `type` == Neighbor.
     struct {
       // The id of one of the neighbors this user is connected to.
-      uint64_t id;
+      uint64_t neighbor_head_idx;
 
       // The available capacity for flow of money from this user to the
       // neighbor.
