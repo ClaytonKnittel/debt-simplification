@@ -49,13 +49,15 @@ struct LayeredGraphNode {
   };
 };
 
+bool operator==(const LayeredGraphNode& a, const LayeredGraphNode& b);
+
 class ExpenseSimplifier {
  public:
   explicit ExpenseSimplifier(DebtGraph&& graph);
 
   const DebtGraph& MinimalTransactions() const;
 
- private:
+ public:
   // Constructs a layered graph from `source` to `sink` using only edges on the
   // shortest paths from `source` to `sink` in `graph_`.
   std::vector<LayeredGraphNode> ConstructLayeredGraph(uint64_t source,

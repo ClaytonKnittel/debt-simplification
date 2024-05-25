@@ -67,6 +67,8 @@ class DebtGraphInternal {
 };
 
 class DebtGraph : public DebtGraphInternal {
+  friend class TestExpenseSimplifier;
+
  public:
   DebtGraph() = default;
 
@@ -81,11 +83,11 @@ class DebtGraph : public DebtGraphInternal {
 
   absl::Status AddTransaction(const Transaction& t);
 
- private:
   // Given a user's name, returns the unique id of the user, or an error if
   // that user doesn't exist.
   absl::StatusOr<uint64_t> FindUserId(absl::string_view username) const;
 
+ private:
   // Given a user's name, returns the unique id of the user, creating a new
   // username-id binding if one doesn't already exist for this user.
   uint64_t FindOrAssignUserId(std::string username);

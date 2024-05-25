@@ -66,6 +66,21 @@ absl::Status DoAssignOrReturn(T &lhs, absl::StatusOr<T> result) {
     lhs = *std::move(_statusor_to_verify);                                     \
   } while (false)
 
+#define ASSERT_OK_AND_DEFINE_IMPL(type, lhs, tmp, rexpr)     \
+  absl::StatusOr<type> tmp = (rexpr);                        \
+  if (!tmp.ok()) {                                           \
+    FAIL() << #rexpr << " returned error: " << tmp.status(); \
+  }                                                          \
+  type &lhs = tmp.value();
+
+// Executes an expression that returns an absl::StatusOr<T>, and defines a new
+// variable with given type and name to the result if the error code is OK. If
+// the Status is non-OK, generates a test failure and returns from the current
+// function, which must have a void return type.
+#define ASSERT_OK_AND_DEFINE(type, lhs, rexpr)                                 \
+  ASSERT_OK_AND_DEFINE_IMPL(type, lhs, UTILS_CONCAT_NAME(__lhs_, __COUNTER__), \
+                            rexpr)
+
 namespace debt_simpl {
 
 namespace internal {

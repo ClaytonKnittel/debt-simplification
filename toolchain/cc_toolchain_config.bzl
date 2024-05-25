@@ -26,18 +26,7 @@ all_cpp_compile_actions = [
   ACTION_NAMES.lto_backend,
 ]
 
-all_compile_actions = [
-  ACTION_NAMES.assemble,
-  ACTION_NAMES.preprocess_assemble,
-  ACTION_NAMES.linkstamp_compile,
-  ACTION_NAMES.c_compile,
-  ACTION_NAMES.cpp_compile,
-  ACTION_NAMES.cpp_header_parsing,
-  ACTION_NAMES.cpp_module_codegen,
-  ACTION_NAMES.cpp_module_compile,
-  ACTION_NAMES.clif_match,
-  ACTION_NAMES.lto_backend,
-]
+all_compile_actions = all_cpp_compile_actions + [ACTION_NAMES.c_compile]
 
 def _impl(ctx):
   tool_paths = [
@@ -136,9 +125,14 @@ def _impl(ctx):
     ],
   )
 
+  dbg_feature = feature(name = "dbg")
+  opt_feature = feature(name = "opt")
+
   features = [
     linker_flags,
     compiler_flags,
+    dbg_feature,
+    opt_feature,
   ]
 
   return cc_common.create_cc_toolchain_config_info(

@@ -8,6 +8,24 @@
 
 namespace debt_simpl {
 
+bool operator==(const LayeredGraphNode& a, const LayeredGraphNode& b) {
+  if (a.type != b.type) {
+    return false;
+  }
+  switch (a.type) {
+    case LayeredGraphNodeType::Head: {
+      return a.head.id == b.head.id && a.head.level == b.head.level;
+    }
+    case LayeredGraphNodeType::Neighbor: {
+      return a.neighbor.neighbor_head_idx == b.neighbor.neighbor_head_idx &&
+             a.neighbor.capacity == b.neighbor.capacity;
+    }
+    case LayeredGraphNodeType::Tombstone: {
+      return true;
+    }
+  }
+}
+
 ExpenseSimplifier::ExpenseSimplifier(DebtGraph&& graph)
     : graph_(std::move(graph)) {}
 
@@ -44,6 +62,7 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
         }
       } else {
         visited_nodes.insert({ neighbor_id, static_cast<uint64_t>(depth + 1) });
+        id_q.push_back({ neighbor_id, depth + 1 });
       }
 
       // Temporarily place neighbor_id in place of neighbor_head_idx. Will pass
@@ -80,7 +99,7 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
         const auto node_it = visited_nodes.find(it->head.id);
         // Replace the visited_nodes entry with the index of this head assuming
         // all elements will be shifted to the right after removing tombstones.
-        uint64_t cur_idx = it - layered_graph.rend() - 1;
+        uint64_t cur_idx = layered_graph.rend() - it - 1;
         node_it->second = cur_idx + num_tombstones;
       }
       num_neighbors = 0;
@@ -94,9 +113,36 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
     }
   }
 
+  std::cout << "first layered graph:" << std::endl;
+  for (const auto& node : layered_graph) {
+    switch (node.type) {
+      case debt_simpl::LayeredGraphNodeType::Head: {
+        std::cout << "Head: " << node.head.id << " (" << node.head.level << ")"
+                  << std::endl;
+        break;
+      }
+      case debt_simpl::LayeredGraphNodeType::Neighbor: {
+        std::cout << "Neighbor: " << node.neighbor._internal_neighbor_id << " ("
+                  << node.neighbor.capacity << ")" << std::endl;
+        break;
+      }
+      case debt_simpl::LayeredGraphNodeType::Tombstone: {
+        std::cout << "Tombstone" << std::endl;
+        break;
+      }
+    }
+  }
+
+  for (const auto& node : visited_nodes) {
+    std::cout << "Node: " << node.first << ", " << node.second << std::endl;
+  }
+
+  std::cout << "num tombstones: " << num_tombstones << std::endl;
+
   // Update all neighbors with neighbor_head_idx to point to the head idx of the
   // neighbor instead of the id, and remove all tombstones.
   for (uint64_t i = 0, j = 0; i < layered_graph.size(); i++) {
+    std::cout << "i: " << i << ", j: " << j << std::endl;
     LayeredGraphNode node = layered_graph.at(i);
     switch (node.type) {
       case LayeredGraphNodeType::Head:
@@ -108,6 +154,9 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
         // shift to the right after removal of tombstones, by the total number
         // of tombstones, which is the difference in indices between shifting to
         // the right and shifting to the left.
+        std::cout << "Updating neighbor " << node.neighbor.neighbor_head_idx
+                  << " to " << node_it->second << " - " << num_tombstones
+                  << std::endl;
         node.neighbor.neighbor_head_idx = node_it->second - num_tombstones;
         break;
       }
@@ -118,6 +167,8 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
     layered_graph[j] = node;
     j++;
   }
+  layered_graph.resize(layered_graph.size() - num_tombstones);
+  layered_graph.shrink_to_fit();
 
   return layered_graph;
 }

@@ -27,9 +27,11 @@ Cents DebtGraphNode::Debt(uint64_t ower_id) const {
 
 void DebtGraphNode::ClearCredits() {
   // Erase all negative debts, which are credits.
-  for (auto it = debts_.begin(); it != debts_.end(); ++it) {
+  for (auto it = debts_.begin(); it != debts_.end();) {
     if (it->second <= 0) {
-      debts_.erase(it);
+      debts_.erase(it++);
+    } else {
+      it++;
     }
   }
 }
