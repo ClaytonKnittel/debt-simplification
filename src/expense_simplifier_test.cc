@@ -12,7 +12,9 @@
 namespace debt_simpl {
 
 using google::protobuf::TextFormat;
+using ::testing::AnyOf;
 using ::testing::ContainerEq;
+using ::testing::Eq;
 
 class TestExpenseSimplifier : public ::testing::Test {
  protected:
@@ -79,37 +81,61 @@ TEST_F(TestExpenseSimplifier, TestNoPath) {
 TEST_F(TestExpenseSimplifier, TestTwoPaths) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
-      lender: "alice"
-      receiver: "bob"
+      lender: "bob"
+      receiver: "alice"
       cents: 100
     }
     transactions {
-      lender: "alice"
+      lender: "bob"
       receiver: "joe"
       cents: 100
     }
     transactions {
+      lender: "alice"
+      receiver: "eunice"
+      cents: 100
+    }
+    transactions {
       lender: "joe"
-      receiver: "bob"
+      receiver: "eunice"
       cents: 100
     })"));
 
   ASSERT_OK_AND_DEFINE(uint64_t, alice_id, graph.FindUserId("alice"));
   ASSERT_OK_AND_DEFINE(uint64_t, bob_id, graph.FindUserId("bob"));
   ASSERT_OK_AND_DEFINE(uint64_t, joe_id, graph.FindUserId("joe"));
+  ASSERT_OK_AND_DEFINE(uint64_t, eunice_id, graph.FindUserId("eunice"));
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructLayeredGraph(bob_id, alice_id);
-  const std::vector expected_result = {
-    LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                      .head = { .id = bob_id, .level = 0 } },
-    LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
-                      .neighbor = { .neighbor_head_idx = 3, .capacity = 100 } },
-    LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                      .head = { .id = alice_id, .level = 1 } }
-  };
-  EXPECT_THAT(layered_graph, ContainerEq(expected_result));
+  const auto layered_graph = solver.ConstructLayeredGraph(eunice_id, bob_id);
+  ASSERT_EQ(layered_graph.size(), 3 + 2 + 2 + 1);
+
+  EXPECT_EQ(layered_graph[0],
+            (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                               .head = { .id = eunice_id, .level = 0 } }));
+  EXPECT_EQ(layered_graph[1].type, LayeredGraphNodeType::Neighbor);
+  EXPECT_EQ(layered_graph[2].type, LayeredGraphNodeType::Neighbor);
+
+  EXPECT_THAT(
+      layered_graph[3],
+      AnyOf(Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                                 .head = { .id = alice_id, .level = 1 } }),
+            Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                                 .head = { .id = joe_id, .level = 1 } })));
+  EXPECT_EQ(layered_graph[4].type, LayeredGraphNodeType::Neighbor);
+
+  EXPECT_THAT(
+      layered_graph[5],
+      AnyOf(Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                                 .head = { .id = alice_id, .level = 1 } }),
+            Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                                 .head = { .id = joe_id, .level = 1 } })));
+  EXPECT_EQ(layered_graph[6].type, LayeredGraphNodeType::Neighbor);
+
+  EXPECT_EQ(layered_graph[7],
+            (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                               .head = { .id = bob_id, .level = 2 } }));
 }
 
 }  // namespace debt_simpl

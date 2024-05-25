@@ -46,6 +46,7 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
   while (!id_q.empty()) {
     const auto [node_id, depth] = id_q.front();
     id_q.pop_front();
+    std::cout << "Popped " << node_id << " at depth " << depth << std::endl;
 
     layered_graph.push_back(
         LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
@@ -56,8 +57,11 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
       }
 
       const auto neighbor_it = visited_nodes.find(neighbor_id);
+      std::cout << "  Neighbor " << neighbor_id << std::endl;
       if (neighbor_it != visited_nodes.end()) {
         if (neighbor_it->second != depth + 1) {
+          std::cout << "    Skipping from depth " << neighbor_it->second
+                    << std::endl;
           continue;
         }
       } else {
@@ -77,6 +81,7 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
     // If we did not add any edges from this node, remove it from the graph.
     if (node_id != sink &&
         layered_graph.back().type == LayeredGraphNodeType::Head) {
+      std::cout << "  Added no edges, erasing" << std::endl;
       layered_graph.pop_back();
     }
 
@@ -114,25 +119,29 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
   }
 
   std::cout << "first layered graph:" << std::endl;
+  uint64_t idxx = 0;
   for (const auto& node : layered_graph) {
     switch (node.type) {
       case debt_simpl::LayeredGraphNodeType::Head: {
-        std::cout << "Head: " << node.head.id << " (" << node.head.level << ")"
-                  << std::endl;
+        std::cout << idxx << " Head: " << node.head.id << " ("
+                  << node.head.level << ")" << std::endl;
         break;
       }
       case debt_simpl::LayeredGraphNodeType::Neighbor: {
-        std::cout << "Neighbor: " << node.neighbor._internal_neighbor_id << " ("
-                  << node.neighbor.capacity << ")" << std::endl;
+        std::cout << idxx
+                  << " Neighbor: " << node.neighbor._internal_neighbor_id
+                  << " (" << node.neighbor.capacity << ")" << std::endl;
         break;
       }
       case debt_simpl::LayeredGraphNodeType::Tombstone: {
-        std::cout << "Tombstone" << std::endl;
+        std::cout << idxx << " Tombstone" << std::endl;
         break;
       }
     }
+    idxx++;
   }
 
+  std::cout << "Node id to idx off by a little" << std::endl;
   for (const auto& node : visited_nodes) {
     std::cout << "Node: " << node.first << ", " << node.second << std::endl;
   }

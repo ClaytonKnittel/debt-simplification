@@ -23,13 +23,13 @@ absl::StatusOr<debt_simpl::DebtGraph> CreateFromString(
 int main() {
   absl::StatusOr<debt_simpl::DebtGraph> res = CreateFromString(R"(
     transactions {
-      lender: "alice"
-      receiver: "bob"
+      lender: "bob"
+      receiver: "alice"
       cents: 100
     }
     transactions {
-      lender: "joe"
-      receiver: "bob"
+      lender: "bob"
+      receiver: "joe"
       cents: 100
     }
     transactions {
@@ -43,13 +43,14 @@ int main() {
       cents: 100
     })");
 
-  uint64_t alice_id = res.value().FindUserId("alice").value();
+  uint64_t bob_id = res.value().FindUserId("bob").value();
   uint64_t eunice_id = res.value().FindUserId("eunice").value();
+  std::cout << "going from " << eunice_id << " to " << bob_id << std::endl;
 
   debt_simpl::ExpenseSimplifier solver =
       debt_simpl::ExpenseSimplifier(std::move(res.value()));
 
-  const auto layered_graph = solver.ConstructLayeredGraph(eunice_id, alice_id);
+  const auto layered_graph = solver.ConstructLayeredGraph(eunice_id, bob_id);
   const std::vector expected_result = { debt_simpl::LayeredGraphNode{
       .type = debt_simpl::LayeredGraphNodeType::Head,
       .head = { .id = 0, .level = 0 } } };
