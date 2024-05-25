@@ -42,11 +42,19 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
   // index in `layered_graph` of the head of the node.
   absl::flat_hash_map<uint64_t, uint64_t> visited_nodes;
   visited_nodes.insert({ source, 0 });
+  uint32_t sink_depth = UINT32_MAX;
 
   while (!id_q.empty()) {
     const auto [node_id, depth] = id_q.front();
     id_q.pop_front();
-    std::cout << "Popped " << node_id << " at depth " << depth << std::endl;
+    // std::cout << "Popped " << node_id << " at depth " << depth << std::endl;
+
+    // Break once we reach the sink depth. No other exploration here is useful
+    // since all shortest paths leading to the sink node have already been
+    // discovered.
+    if (depth == sink_depth) {
+      break;
+    }
 
     layered_graph.push_back(
         LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
@@ -56,12 +64,16 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
         continue;
       }
 
+      if (neighbor_id == sink) {
+        sink_depth = depth + 1;
+      }
+
       const auto neighbor_it = visited_nodes.find(neighbor_id);
-      std::cout << "  Neighbor " << neighbor_id << std::endl;
+      // std::cout << "  Neighbor " << neighbor_id << std::endl;
       if (neighbor_it != visited_nodes.end()) {
         if (neighbor_it->second != depth + 1) {
-          std::cout << "    Skipping from depth " << neighbor_it->second
-                    << std::endl;
+          // std::cout << "    Skipping from depth " << neighbor_it->second
+          //           << std::endl;
           continue;
         }
       } else {
@@ -77,16 +89,22 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
                             .neighbor = { ._internal_neighbor_id = neighbor_id,
                                           .capacity = capacity } });
     }
+  }
 
-    // If we did not add any edges from this node, remove it from the graph.
-    if (node_id != sink &&
-        layered_graph.back().type == LayeredGraphNodeType::Head) {
-      std::cout << "  Added no edges, erasing" << std::endl;
-      layered_graph.pop_back();
-    }
+  // Manually add the sink node since it was never explored.
+  if (sink_depth != UINT32_MAX) {
+    layered_graph.push_back(
+        LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                          .head = { .id = sink, .level = sink_depth } });
+  }
 
-    if (node_id == sink) {
-      break;
+  // Remove all visited nodes with depth == sink_depth, except for the sink.
+  for (auto it = visited_nodes.begin(); it != visited_nodes.end();) {
+    if (it->first != sink && it->second == sink_depth) {
+      // std::cout << "erasing " << it->first << std::endl;
+      visited_nodes.erase(it++);
+    } else {
+      it++;
     }
   }
 
@@ -96,6 +114,8 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
   uint64_t num_tombstones = 0;
   for (auto it = layered_graph.rbegin(); it != layered_graph.rend(); ++it) {
     if (it->type == LayeredGraphNodeType::Head) {
+      // std::cout << "head " << it->head.id << " with " << num_neighbors
+      //           << " neighbors" << std::endl;
       if (it->head.id != sink && num_neighbors == 0) {
         visited_nodes.erase(it->head.id);
         it->type = LayeredGraphNodeType::Tombstone;
@@ -109,7 +129,9 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
       }
       num_neighbors = 0;
     } else {
-      if (!visited_nodes.contains(it->neighbor._internal_neighbor_id)) {
+      const auto neighbor_it =
+          visited_nodes.find(it->neighbor._internal_neighbor_id);
+      if (neighbor_it == visited_nodes.end()) {
         it->type = LayeredGraphNodeType::Tombstone;
         num_tombstones++;
       } else {
@@ -118,40 +140,41 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
     }
   }
 
-  std::cout << "first layered graph:" << std::endl;
-  uint64_t idxx = 0;
-  for (const auto& node : layered_graph) {
-    switch (node.type) {
-      case debt_simpl::LayeredGraphNodeType::Head: {
-        std::cout << idxx << " Head: " << node.head.id << " ("
-                  << node.head.level << ")" << std::endl;
-        break;
-      }
-      case debt_simpl::LayeredGraphNodeType::Neighbor: {
-        std::cout << idxx
-                  << " Neighbor: " << node.neighbor._internal_neighbor_id
-                  << " (" << node.neighbor.capacity << ")" << std::endl;
-        break;
-      }
-      case debt_simpl::LayeredGraphNodeType::Tombstone: {
-        std::cout << idxx << " Tombstone" << std::endl;
-        break;
-      }
-    }
-    idxx++;
-  }
+  // std::cout << "first layered graph:" << std::endl;
+  // uint64_t idxx = 0;
+  // for (const auto& node : layered_graph) {
+  //   switch (node.type) {
+  //     case debt_simpl::LayeredGraphNodeType::Head: {
+  //       std::cout << idxx << " Head: " << node.head.id << " ("
+  //                 << node.head.level << ")" << std::endl;
+  //       break;
+  //     }
+  //     case debt_simpl::LayeredGraphNodeType::Neighbor: {
+  //       std::cout << idxx
+  //                 << " Neighbor: " << node.neighbor._internal_neighbor_id
+  //                 << " (" << node.neighbor.capacity << ")" << std::endl;
+  //       break;
+  //     }
+  //     case debt_simpl::LayeredGraphNodeType::Tombstone: {
+  //       std::cout << idxx << " Tombstone" << std::endl;
+  //       break;
+  //     }
+  //   }
+  //   idxx++;
+  // }
 
-  std::cout << "Node id to idx off by a little" << std::endl;
-  for (const auto& node : visited_nodes) {
-    std::cout << "Node: " << node.first << ", " << node.second << std::endl;
-  }
+  // std::cout << "Node id to idx off by a little" << std::endl;
+  // for (const auto& node : visited_nodes) {
+  //   std::cout << "Node: " << node.first << ", " << node.second << " ("
+  //             << node.second - num_tombstones << ")" << std::endl;
+  // }
 
-  std::cout << "num tombstones: " << num_tombstones << std::endl;
+  // std::cout << "num tombstones: " << num_tombstones << std::endl;
 
   // Update all neighbors with neighbor_head_idx to point to the head idx of the
   // neighbor instead of the id, and remove all tombstones.
   for (uint64_t i = 0, j = 0; i < layered_graph.size(); i++) {
-    std::cout << "i: " << i << ", j: " << j << std::endl;
+    // std::cout << "i: " << i << ", j: " << j << std::endl;
     LayeredGraphNode node = layered_graph.at(i);
     switch (node.type) {
       case LayeredGraphNodeType::Head:
@@ -163,9 +186,9 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructLayeredGraph(
         // shift to the right after removal of tombstones, by the total number
         // of tombstones, which is the difference in indices between shifting to
         // the right and shifting to the left.
-        std::cout << "Updating neighbor " << node.neighbor.neighbor_head_idx
-                  << " to " << node_it->second << " - " << num_tombstones
-                  << std::endl;
+        // std::cout << "Updating neighbor " << node.neighbor.neighbor_head_idx
+        //           << " to " << node_it->second << " - " << num_tombstones
+        //           << std::endl;
         node.neighbor.neighbor_head_idx = node_it->second - num_tombstones;
         break;
       }

@@ -138,4 +138,61 @@ TEST_F(TestExpenseSimplifier, TestTwoPaths) {
                                .head = { .id = bob_id, .level = 2 } }));
 }
 
+TEST_F(TestExpenseSimplifier, TestPrunePaths) {
+  ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
+    transactions {
+      lender: "bob"
+      receiver: "alice"
+      cents: 50
+    }
+    transactions {
+      lender: "farquat"
+      receiver: "joe"
+      cents: 104
+    }
+    transactions {
+      lender: "alice"
+      receiver: "eunice"
+      cents: 100
+    }
+    transactions {
+      lender: "joe"
+      receiver: "eunice"
+      cents: 102
+    })"));
+
+  ASSERT_OK_AND_DEFINE(uint64_t, alice_id, graph.FindUserId("alice"));
+  ASSERT_OK_AND_DEFINE(uint64_t, bob_id, graph.FindUserId("bob"));
+  ASSERT_OK_AND_DEFINE(uint64_t, eunice_id, graph.FindUserId("eunice"));
+
+  ExpenseSimplifier solver(std::move(graph));
+
+  const auto layered_graph = solver.ConstructLayeredGraph(eunice_id, bob_id);
+  ASSERT_EQ(layered_graph.size(), 2 + 2 + 1);
+
+  EXPECT_EQ(layered_graph[0],
+            (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                               .head = { .id = eunice_id, .level = 0 } }));
+  EXPECT_EQ(layered_graph[1],
+            (LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
+                               .neighbor = {
+                                   .neighbor_head_idx = 2,
+                                   .capacity = 100,
+                               } }));
+
+  EXPECT_EQ(layered_graph[2],
+            (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                               .head = { .id = alice_id, .level = 1 } }));
+  EXPECT_EQ(layered_graph[3],
+            (LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
+                               .neighbor = {
+                                   .neighbor_head_idx = 4,
+                                   .capacity = 50,
+                               } }));
+
+  EXPECT_EQ(layered_graph[4],
+            (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                               .head = { .id = bob_id, .level = 2 } }));
+}
+
 }  // namespace debt_simpl
