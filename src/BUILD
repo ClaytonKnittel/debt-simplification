@@ -50,6 +50,17 @@ cc_library(
   ],
 )
 
+cc_test(
+  name = "expense_simplifier_test",
+  size = "small",
+  srcs = ["expense_simplifier_test.cc"],
+  deps = [
+    ":expense_simplifier",
+    "@googletest//:gtest_main",
+  ],
+)
+
+
 proto_library(
   name = "debts_proto",
   srcs = ["debts.proto"],

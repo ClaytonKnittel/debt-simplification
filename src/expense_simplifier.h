@@ -32,8 +32,15 @@ struct LayeredGraphNode {
 
     // Members are defined if `type` == Neighbor.
     struct {
-      // The id of one of the neighbors this user is connected to.
-      uint64_t neighbor_head_idx;
+      union {
+        // The id of the neighbor. This is only meaningful during construction
+        // of the layered graph, and will not be defined in the graph produced
+        // by `ConstructLayeredGraph()`.
+        uint64_t _internal_neighbor_id;
+        // The index in the layered graph of the head of one of the neighbors
+        // this user is connected to.
+        uint64_t neighbor_head_idx;
+      };
 
       // The available capacity for flow of money from this user to the
       // neighbor.
