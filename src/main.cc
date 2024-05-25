@@ -25,12 +25,12 @@ int main() {
     transactions {
       lender: "bob"
       receiver: "alice"
-      cents: 100
+      cents: 50
     }
     transactions {
-      lender: "bob"
+      lender: "farquat"
       receiver: "joe"
-      cents: 100
+      cents: 104
     }
     transactions {
       lender: "alice"
@@ -40,7 +40,7 @@ int main() {
     transactions {
       lender: "joe"
       receiver: "eunice"
-      cents: 100
+      cents: 102
     })");
 
   uint64_t bob_id = res.value().FindUserId("bob").value();
