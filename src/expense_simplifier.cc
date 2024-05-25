@@ -2,13 +2,15 @@
 
 #include <vector>
 
+#include "src/debt_graph.h"
+
 namespace debt_simpl {
 
-ExpenseSimplifier::ExpenseSimplifier(DebtGraph graph)
+ExpenseSimplifier::ExpenseSimplifier(DebtGraph&& graph)
     : graph_(std::move(graph)) {}
 
-const std::vector<Transaction> ExpenseSimplifier::MinimalTransactions() const {
-  return std::vector<Transaction>();
+DebtGraph ExpenseSimplifier::MinimalTransactions() const {
+  return DebtGraph();
 }
 
 }  // namespace debt_simpl

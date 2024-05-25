@@ -9,12 +9,12 @@ namespace debt_simpl {
 
 class ExpenseSimplifier {
  public:
-  explicit ExpenseSimplifier(DebtGraph graph);
+  explicit ExpenseSimplifier(DebtGraph&& graph);
 
-  const std::vector<Transaction> MinimalTransactions() const;
+  DebtGraph MinimalTransactions() const;
 
  private:
-  DebtGraph graph_;
+  AugmentedDebtGraph graph_;
 };
 
 }  // namespace debt_simpl

@@ -15,10 +15,6 @@ using ::testing::Not;
 
 class TestDebtGraph : public ::testing::Test {
  protected:
-  DebtGraph EmptyDebtGraph() const {
-    return DebtGraph();
-  }
-
   absl::StatusOr<DebtGraph> CreateFromString(
       absl::string_view debt_list_proto) {
     DebtList debt_list;
@@ -33,7 +29,7 @@ class TestDebtGraph : public ::testing::Test {
 };
 
 TEST_F(TestDebtGraph, SingleTransaction) {
-  DebtGraph graph = EmptyDebtGraph();
+  DebtGraph graph;
   ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
     transactions {
       lender: "alice"
@@ -46,7 +42,7 @@ TEST_F(TestDebtGraph, SingleTransaction) {
 }
 
 TEST_F(TestDebtGraph, DebtsCombine) {
-  DebtGraph graph = EmptyDebtGraph();
+  DebtGraph graph;
   ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
     transactions {
       lender: "alice"
@@ -64,7 +60,7 @@ TEST_F(TestDebtGraph, DebtsCombine) {
 }
 
 TEST_F(TestDebtGraph, DebtAndCreditCancel) {
-  DebtGraph graph = EmptyDebtGraph();
+  DebtGraph graph;
   ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
     transactions {
       lender: "alice"
@@ -82,7 +78,7 @@ TEST_F(TestDebtGraph, DebtAndCreditCancel) {
 }
 
 TEST_F(TestDebtGraph, UnknownUser) {
-  DebtGraph graph = EmptyDebtGraph();
+  DebtGraph graph;
   ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
     transactions {
       lender: "x"
@@ -96,7 +92,7 @@ TEST_F(TestDebtGraph, UnknownUser) {
 }
 
 TEST_F(TestDebtGraph, TwoTransactions) {
-  DebtGraph graph = EmptyDebtGraph();
+  DebtGraph graph;
   ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
     transactions {
       lender: "alice"
