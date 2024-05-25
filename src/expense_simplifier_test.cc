@@ -31,7 +31,9 @@ class TestExpenseSimplifier : public ::testing::Test {
   }
 };
 
-TEST_F(TestExpenseSimplifier, TestSingleTransaction) {
+class TestLayeredGraph : public TestExpenseSimplifier {};
+
+TEST_F(TestLayeredGraph, TestSingleTransaction) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
       lender: "alice"
@@ -56,7 +58,7 @@ TEST_F(TestExpenseSimplifier, TestSingleTransaction) {
   EXPECT_THAT(layered_graph, ContainerEq(expected_result));
 }
 
-TEST_F(TestExpenseSimplifier, TestNoPath) {
+TEST_F(TestLayeredGraph, TestNoPath) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
       lender: "alice"
@@ -78,7 +80,7 @@ TEST_F(TestExpenseSimplifier, TestNoPath) {
   EXPECT_THAT(layered_graph, ContainerEq(std::vector<LayeredGraphNode>()));
 }
 
-TEST_F(TestExpenseSimplifier, TestTwoPaths) {
+TEST_F(TestLayeredGraph, TestTwoPaths) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
       lender: "bob"
@@ -138,7 +140,7 @@ TEST_F(TestExpenseSimplifier, TestTwoPaths) {
                                .head = { .id = bob_id, .level = 2 } }));
 }
 
-TEST_F(TestExpenseSimplifier, TestPrunePaths) {
+TEST_F(TestLayeredGraph, TestPrunePaths) {
   ASSERT_OK_AND_DEFINE(DebtGraph, graph, CreateFromString(R"(
     transactions {
       lender: "bob"
