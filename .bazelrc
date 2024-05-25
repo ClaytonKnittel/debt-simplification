@@ -1,1 +1,0 @@
-common --client_env=CC=clang

@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "051c19d74f370b4fd60f820aa0a229438b92343a852d1204ecbd23b05741a4ff",
+  "moduleFileHash": "2d5015f5d9005abbe42b6c078a9724e1607f1f1959fa2812e6ed37fa81a06546",
   "flags": {
     "cmdRegistries": [
       "https://bcr.bazel.build/"
@@ -22,7 +22,9 @@
       "key": "<root>",
       "repoName": "",
       "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
+      "toolchainsToRegister": [
+        "//toolchain:cc_toolchain_for_linux_x86_64"
+      ],
       "extensionUsages": [],
       "deps": {
         "hedron_compile_commands": "hedron_compile_commands@_",
