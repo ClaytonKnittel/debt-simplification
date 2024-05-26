@@ -37,12 +37,35 @@ cc_test(
 )
 
 cc_library(
+  name = "layered_graph",
+  hdrs = ["layered_graph.h"],
+  srcs = ["layered_graph.cc"],
+  deps = [
+    ":debt_graph",
+    "@abseil-cpp//absl/container:flat_hash_map",
+  ],
+)
+
+cc_test(
+  name = "layered_graph_test",
+  size = "small",
+  srcs = ["layered_graph_test.cc"],
+  deps = [
+    ":debt_graph",
+    ":layered_graph",
+    ":utils",
+    "@googletest//:gtest_main",
+    "@protobuf//:protobuf",
+  ],
+)
+
+cc_library(
   name = "expense_simplifier",
   hdrs = ["expense_simplifier.h"],
   srcs = ["expense_simplifier.cc"],
   deps = [
     ":debt_graph",
-    ":debts_cc_proto",
+    ":layered_graph",
   ],
 )
 
