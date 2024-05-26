@@ -56,12 +56,14 @@ struct LayeredGraphNode {
 bool operator==(const LayeredGraphNode& a, const LayeredGraphNode& b);
 
 class ExpenseSimplifier {
+  friend class TestExpenseSimplifier;
+
  public:
   explicit ExpenseSimplifier(DebtGraph&& graph);
 
   const DebtGraph& MinimalTransactions() const;
 
- public:
+ protected:
   // Constructs a layered graph from `source` to `sink` using only edges on the
   // shortest paths from `source` to `sink` in `graph_`, then computes a
   // blocking flow on the resulting DAG.
@@ -74,6 +76,7 @@ class ExpenseSimplifier {
   std::vector<LayeredGraphNode> ConstructBlockingFlow(uint64_t source,
                                                       uint64_t sink) const;
 
+ private:
   DebtGraph simplified_expenses_;
 
   AugmentedDebtGraph graph_;

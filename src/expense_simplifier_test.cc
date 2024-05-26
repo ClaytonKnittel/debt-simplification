@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <stdint.h>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "google/protobuf/text_format.h"
@@ -30,6 +31,11 @@ class TestExpenseSimplifier : public ::testing::Test {
 
     return DebtGraph::BuildFromProto(debt_list);
   }
+
+  std::vector<LayeredGraphNode> ConstructBlockingFlow(
+      const ExpenseSimplifier& solver, uint64_t source, uint64_t sink) {
+    return solver.ConstructBlockingFlow(source, sink);
+  }
 };
 
 class TestBlockingFlow : public TestExpenseSimplifier {};
@@ -47,7 +53,7 @@ TEST_F(TestBlockingFlow, TestSingleTransaction) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructBlockingFlow(bob_id, alice_id);
+  const auto layered_graph = ConstructBlockingFlow(solver, bob_id, alice_id);
   const std::vector expected_result = {
     LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
                       .head = { .id = bob_id, .level = 0 } },
@@ -78,7 +84,7 @@ TEST_F(TestBlockingFlow, TestNoPath) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructBlockingFlow(joe_id, alice_id);
+  const auto layered_graph = ConstructBlockingFlow(solver, joe_id, alice_id);
   EXPECT_THAT(layered_graph, ContainerEq(std::vector<LayeredGraphNode>()));
 }
 
@@ -112,7 +118,7 @@ TEST_F(TestBlockingFlow, TestTwoPaths) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructBlockingFlow(eunice_id, bob_id);
+  const auto layered_graph = ConstructBlockingFlow(solver, eunice_id, bob_id);
   ASSERT_EQ(layered_graph.size(), 3 + 2 + 2 + 1);
 
   EXPECT_EQ(layered_graph[0],
@@ -171,7 +177,7 @@ TEST_F(TestBlockingFlow, TestPrunePaths) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructBlockingFlow(eunice_id, bob_id);
+  const auto layered_graph = ConstructBlockingFlow(solver, eunice_id, bob_id);
   ASSERT_EQ(layered_graph.size(), 2 + 2 + 1);
 
   EXPECT_EQ(layered_graph[0],
@@ -257,7 +263,7 @@ TEST_F(TestBlockingFlow, TestMultipleFlowsPossible) {
 
   ExpenseSimplifier solver(std::move(graph));
 
-  const auto layered_graph = solver.ConstructBlockingFlow(a_id, f_id);
+  const auto layered_graph = ConstructBlockingFlow(solver, a_id, f_id);
   ASSERT_EQ(layered_graph.size(), 3 + 2 + 3 + 2 + 2 + 1);
 
   uint64_t a_idx = UINT64_MAX, b_idx = UINT64_MAX, c_idx = UINT64_MAX,
