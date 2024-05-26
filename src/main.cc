@@ -23,34 +23,56 @@ absl::StatusOr<debt_simpl::DebtGraph> CreateFromString(
 int main() {
   absl::StatusOr<debt_simpl::DebtGraph> res = CreateFromString(R"(
     transactions {
-      lender: "bob"
-      receiver: "alice"
-      cents: 50
+      lender: "b"
+      receiver: "a"
+      cents: 2
     }
     transactions {
-      lender: "farquat"
-      receiver: "joe"
-      cents: 104
+      lender: "c"
+      receiver: "a"
+      cents: 3
     }
     transactions {
-      lender: "alice"
-      receiver: "eunice"
-      cents: 100
+      lender: "d"
+      receiver: "c"
+      cents: 1
     }
     transactions {
-      lender: "joe"
-      receiver: "eunice"
-      cents: 102
+      lender: "e"
+      receiver: "c"
+      cents: 1
+    }
+    transactions {
+      lender: "e"
+      receiver: "b"
+      cents: 1
+    }
+    transactions {
+      lender: "f"
+      receiver: "d"
+      cents: 10
+    }
+    transactions {
+      lender: "f"
+      receiver: "e"
+      cents: 1
     })");
 
-  uint64_t bob_id = res.value().FindUserId("bob").value();
-  uint64_t eunice_id = res.value().FindUserId("eunice").value();
-  std::cout << "going from " << eunice_id << " to " << bob_id << std::endl;
+  uint64_t a_id = res.value().FindUserId("a").value();
+  uint64_t f_id = res.value().FindUserId("f").value();
+  std::cout << "going from " << a_id << " to " << f_id << std::endl;
+
+  std::cout << "a: " << res.value().FindUserId("a").value() << std::endl;
+  std::cout << "b: " << res.value().FindUserId("b").value() << std::endl;
+  std::cout << "c: " << res.value().FindUserId("c").value() << std::endl;
+  std::cout << "d: " << res.value().FindUserId("d").value() << std::endl;
+  std::cout << "e: " << res.value().FindUserId("e").value() << std::endl;
+  std::cout << "f: " << res.value().FindUserId("f").value() << std::endl;
 
   debt_simpl::ExpenseSimplifier solver =
       debt_simpl::ExpenseSimplifier(std::move(res.value()));
 
-  const auto layered_graph = solver.ConstructBlockingFlow(eunice_id, bob_id);
+  const auto layered_graph = solver.ConstructBlockingFlow(a_id, f_id);
 
   std::cout << "layered graph:" << std::endl;
   for (const auto& node : layered_graph) {

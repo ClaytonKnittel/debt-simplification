@@ -251,8 +251,9 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructBlockingFlow(
       .node_idx = neighbor_idx,
       .cur_neighbor_idx = neighbor_idx + 1,
       .flow = 0,
-      .capacity = std::min(element.capacity - element.flow,
-                           neighbor_node.neighbor.capacity),
+      .capacity = std::min(
+          element.capacity - element.flow,
+          neighbor_node.neighbor.capacity - neighbor_node.neighbor.flow),
     };
 
     element.cur_neighbor_idx++;
