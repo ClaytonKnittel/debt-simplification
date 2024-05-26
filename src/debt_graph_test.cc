@@ -1,5 +1,7 @@
 #include "src/debt_graph.h"
 
+#include <cstdint>
+
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "gmock/gmock.h"
@@ -27,6 +29,8 @@ class TestDebtGraph : public ::testing::Test {
     return DebtGraph::BuildFromProto(debt_list);
   }
 };
+
+class TestLargestPlayers : public TestDebtGraph {};
 
 TEST_F(TestDebtGraph, SingleTransaction) {
   DebtGraph graph;
@@ -108,6 +112,59 @@ TEST_F(TestDebtGraph, TwoTransactions) {
   EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(100));
   EXPECT_THAT(graph.AmountOwed("bob", "joe"), IsOkAndHolds(50));
   EXPECT_THAT(graph.AmountOwed("alice", "joe"), IsOkAndHolds(0));
+}
+
+TEST_F(TestLargestPlayers, Simple) {
+  DebtGraph graph;
+  ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
+    transactions {
+      lender: "a"
+      receiver: "b"
+      cents: 100
+    })"));
+  AugmentedDebtGraph augmented_graph = std::move(graph);
+
+  ASSERT_OK_AND_DEFINE(uint64_t, a_id, graph.FindUserId("a"));
+  ASSERT_OK_AND_DEFINE(uint64_t, b_id, graph.FindUserId("b"));
+
+  const std::pair<uint64_t, uint64_t> expected_res = { b_id, a_id };
+  EXPECT_EQ(augmented_graph.FindLargestPlayers(), expected_res);
+}
+
+TEST_F(TestLargestPlayers, Empty) {
+  DebtGraph graph;
+  ASSERT_OK_AND_ASSIGN(graph, CreateFromString(""));
+  AugmentedDebtGraph augmented_graph = std::move(graph);
+
+  // Should not crash.
+  augmented_graph.FindLargestPlayers();
+}
+
+TEST_F(TestLargestPlayers, MultiplePlayers) {
+  DebtGraph graph;
+  ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
+    transactions {
+      lender: "a"
+      receiver: "b"
+      cents: 100
+    }
+    transactions {
+      lender: "b"
+      receiver: "d"
+      cents: 300
+    }
+    transactions {
+      lender: "d"
+      receiver: "c"
+      cents: 125
+    })"));
+  AugmentedDebtGraph augmented_graph = std::move(graph);
+
+  ASSERT_OK_AND_DEFINE(uint64_t, d_id, graph.FindUserId("d"));
+  ASSERT_OK_AND_DEFINE(uint64_t, b_id, graph.FindUserId("b"));
+
+  const std::pair<uint64_t, uint64_t> expected_res = { d_id, b_id };
+  EXPECT_EQ(augmented_graph.FindLargestPlayers(), expected_res);
 }
 
 }  // namespace debt_simpl

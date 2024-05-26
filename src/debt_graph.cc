@@ -1,6 +1,7 @@
 #include "src/debt_graph.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <string>
 
 #include "absl/status/statusor.h"
@@ -122,6 +123,37 @@ uint64_t DebtGraph::FindOrAssignUserId(std::string username) {
 AugmentedDebtGraph::AugmentedDebtGraph(DebtGraph&& graph)
     : DebtGraphInternal(std::move(graph)) {
   ClearCredits();
+}
+
+std::pair<uint64_t, uint64_t> AugmentedDebtGraph::FindLargestPlayers() const {
+  std::vector<Cents> debts(NumUsers());
+
+  for (uint64_t id = 0; id < NumUsers(); id++) {
+    Cents total_debt = 0;
+    for (const auto [lender_id, debt] : AllDebts(id)) {
+      total_debt += debt;
+      debts[lender_id] -= debt;
+    }
+    debts[id] += total_debt;
+  }
+
+  Cents min_debt = INT64_MAX;
+  uint64_t min_debt_id;
+  Cents max_debt = INT64_MIN;
+  uint64_t max_debt_id;
+
+  for (uint64_t id = 0; id < NumUsers(); id++) {
+    if (debts[id] < min_debt) {
+      min_debt = debts[id];
+      min_debt_id = id;
+    }
+    if (debts[id] > max_debt) {
+      max_debt = debts[id];
+      max_debt_id = id;
+    }
+  }
+
+  return { max_debt_id, min_debt_id };
 }
 
 void AugmentedDebtGraph::ClearCredits() {

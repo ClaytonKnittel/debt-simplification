@@ -107,6 +107,11 @@ class AugmentedDebtGraph : public DebtGraphInternal {
   // backwards edges to 0.
   AugmentedDebtGraph(DebtGraph&& graph);
 
+  // Searches the whole graph for the two users with the largest debt and
+  // largest credit, returning a pair of { largest debt user, largest credit
+  // user }.
+  std::pair<uint64_t, uint64_t> FindLargestPlayers() const;
+
  private:
   // Clears all credits recorded in the graph, which is useful when constructing
   // an AugmentedDebtGraph from a DebtGraph.
