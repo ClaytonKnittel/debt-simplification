@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <vector>
 
 #include "src/debt_graph.h"
 
@@ -54,16 +55,40 @@ struct LayeredGraphNode {
 
 bool operator==(const LayeredGraphNode& a, const LayeredGraphNode& b);
 
-// Constructs a layered graph from `source` to `sink` using only edges on the
-// shortest paths from `source` to `sink` in `graph_`, then computes a
-// blocking flow on the resulting DAG.
-//
-// The return value is a vector of `LayeredGraphNode`s, which are either
-// `Header`s or `Neighbor`s. Each header is followed by some number of
-// neighbors, which are the corresponding neighbors of the node associated
-// with that header. Those neighbor nodes point to the index into this vector
-// of the header of the neighbor node.
-std::vector<LayeredGraphNode> ConstructBlockingFlow(
-    const AugmentedDebtGraph& graph, uint64_t source, uint64_t sink);
+class LayeredGraph {
+ public:
+  LayeredGraphNode& operator[](size_t i);
+  const LayeredGraphNode& operator[](size_t i) const;
+
+  size_t size() const;
+
+  std::vector<LayeredGraphNode>::iterator begin();
+  std::vector<LayeredGraphNode>::iterator end();
+
+  std::vector<LayeredGraphNode>::const_iterator begin() const;
+  std::vector<LayeredGraphNode>::const_iterator end() const;
+
+  const std::vector<LayeredGraphNode>& NodeList() const;
+
+  // Constructs a layered graph from `source` to `sink` using only edges on the
+  // shortest paths from `source` to `sink` in `graph_`, then computes a
+  // blocking flow on the resulting DAG.
+  //
+  // The return value is a vector of `LayeredGraphNode`s, which are either
+  // `Header`s or `Neighbor`s. Each header is followed by some number of
+  // neighbors, which are the corresponding neighbors of the node associated
+  // with that header. Those neighbor nodes point to the index into this vector
+  // of the header of the neighbor node.
+  static LayeredGraph ConstructBlockingFlow(const AugmentedDebtGraph& graph,
+                                            uint64_t source, uint64_t sink);
+
+  // Computes the total flow of money in this graph.
+  Cents ComputeFlow() const;
+
+ private:
+  LayeredGraph() = default;
+
+  std::vector<LayeredGraphNode> nodes_;
+};
 
 }  // namespace debt_simpl

@@ -5,6 +5,7 @@
 #include "src/debt_graph.h"
 #include "src/debts.pb.h"
 #include "src/expense_simplifier.h"
+#include "src/layered_graph.h"
 #include "utils.h"
 
 using google::protobuf::TextFormat;
@@ -69,10 +70,8 @@ int main() {
   std::cout << "e: " << res.value().FindUserId("e").value() << std::endl;
   std::cout << "f: " << res.value().FindUserId("f").value() << std::endl;
 
-  debt_simpl::ExpenseSimplifier solver =
-      debt_simpl::ExpenseSimplifier(std::move(res.value()));
-
-  const auto layered_graph = solver.ConstructBlockingFlow(a_id, f_id);
+  const auto layered_graph =
+      debt_simpl::LayeredGraph::ConstructBlockingFlow(res.value(), a_id, f_id);
 
   std::cout << "layered graph:" << std::endl;
   for (const auto& node : layered_graph) {

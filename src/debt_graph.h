@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
+#include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
@@ -22,10 +24,20 @@ class DebtGraphNode {
 
   void ClearCredits();
 
+  void EraseDebt(uint64_t id);
+
+  void Clear();
+
   const absl::flat_hash_map<uint64_t, Cents>& AllDebts() const;
 
  private:
   absl::flat_hash_map<uint64_t, Cents> debts_;
+};
+
+struct DebtGraphEdge {
+  uint64_t receiver_id;
+  uint64_t lender_id;
+  Cents debt;
 };
 
 class DebtGraphInternal {
@@ -46,9 +58,18 @@ class DebtGraphInternal {
   // `to` by `from`. This can be used to offset debt `from` owes `to`.
   void PushFlow(uint64_t from, uint64_t to, Cents amount);
 
+  // Erases any edge between the two users, if one exists.
+  void EraseEdge(uint64_t user1_id, uint64_t user2_id);
+
+  // Clears the graph.
+  void Clear();
+
   // Returns a map of all user id's that `user_id` is indebted to and how much
   // each debt is.
   const absl::flat_hash_map<uint64_t, Cents>& AllDebts(uint64_t user_id) const;
+
+  // Returns all debts between all users in the graph.
+  const std::vector<DebtGraphEdge> AllDebts() const;
 
  protected:
   // Adds a new user and returns their ID.
@@ -105,12 +126,7 @@ class AugmentedDebtGraph : public DebtGraphInternal {
 
   // Constructs an AugmentedDebtGraph from a DebtGraph, initializing all
   // backwards edges to 0.
-  AugmentedDebtGraph(DebtGraph&& graph);
-
-  // Searches the whole graph for the two users with the largest debt and
-  // largest credit, returning a pair of { largest debt user, largest credit
-  // user }.
-  std::pair<uint64_t, uint64_t> FindLargestPlayers() const;
+  AugmentedDebtGraph(const DebtGraph& graph);
 
  private:
   // Clears all credits recorded in the graph, which is useful when constructing

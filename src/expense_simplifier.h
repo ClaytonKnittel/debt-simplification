@@ -14,8 +14,9 @@ class ExpenseSimplifier {
 
   const DebtGraph& MinimalTransactions() const;
 
- protected:
  private:
+  void BuildMinimalTransactions(AugmentedDebtGraph&& graph);
+
   DebtGraph simplified_expenses_;
 };
 

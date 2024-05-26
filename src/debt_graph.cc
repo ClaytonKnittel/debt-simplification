@@ -37,6 +37,17 @@ void DebtGraphNode::ClearCredits() {
   }
 }
 
+void DebtGraphNode::EraseDebt(uint64_t id) {
+  const auto it = debts_.find(id);
+  if (it != debts_.end()) {
+    debts_.erase(it);
+  }
+}
+
+void DebtGraphNode::Clear() {
+  debts_.clear();
+}
+
 const absl::flat_hash_map<uint64_t, Cents>& DebtGraphNode::AllDebts() const {
   return debts_;
 }
@@ -54,9 +65,33 @@ void DebtGraphInternal::PushFlow(uint64_t from, uint64_t to, Cents amount) {
   AddDebt(to, from, amount);
 }
 
+void DebtGraphInternal::EraseEdge(uint64_t user1_id, uint64_t user2_id) {
+  node_list_[user1_id].EraseDebt(user2_id);
+  node_list_[user2_id].EraseDebt(user1_id);
+}
+
+void DebtGraphInternal::Clear() {
+  for (DebtGraphNode& node : node_list_) {
+    node.Clear();
+  }
+}
+
 const absl::flat_hash_map<uint64_t, Cents>& DebtGraphInternal::AllDebts(
     uint64_t user_id) const {
   return node_list_[user_id].AllDebts();
+}
+
+const std::vector<DebtGraphEdge> DebtGraphInternal::AllDebts() const {
+  std::vector<DebtGraphEdge> edges;
+  for (uint64_t receiver_id = 0; receiver_id < node_list_.size();
+       receiver_id++) {
+    const DebtGraphNode& node = node_list_[receiver_id];
+    for (const auto [lender_id, debt] : node.AllDebts()) {
+      edges.push_back(DebtGraphEdge{
+          .receiver_id = receiver_id, .lender_id = lender_id, .debt = debt });
+    }
+  }
+  return edges;
 }
 
 uint64_t DebtGraphInternal::AddNewUser() {
@@ -120,40 +155,9 @@ uint64_t DebtGraph::FindOrAssignUserId(std::string username) {
   return it->second;
 }
 
-AugmentedDebtGraph::AugmentedDebtGraph(DebtGraph&& graph)
-    : DebtGraphInternal(std::move(graph)) {
+AugmentedDebtGraph::AugmentedDebtGraph(const DebtGraph& graph)
+    : DebtGraphInternal(graph) {
   ClearCredits();
-}
-
-std::pair<uint64_t, uint64_t> AugmentedDebtGraph::FindLargestPlayers() const {
-  std::vector<Cents> debts(NumUsers());
-
-  for (uint64_t id = 0; id < NumUsers(); id++) {
-    Cents total_debt = 0;
-    for (const auto [lender_id, debt] : AllDebts(id)) {
-      total_debt += debt;
-      debts[lender_id] -= debt;
-    }
-    debts[id] += total_debt;
-  }
-
-  Cents min_debt = INT64_MAX;
-  uint64_t min_debt_id;
-  Cents max_debt = INT64_MIN;
-  uint64_t max_debt_id;
-
-  for (uint64_t id = 0; id < NumUsers(); id++) {
-    if (debts[id] < min_debt) {
-      min_debt = debts[id];
-      min_debt_id = id;
-    }
-    if (debts[id] > max_debt) {
-      max_debt = debts[id];
-      max_debt_id = id;
-    }
-  }
-
-  return { max_debt_id, min_debt_id };
 }
 
 void AugmentedDebtGraph::ClearCredits() {

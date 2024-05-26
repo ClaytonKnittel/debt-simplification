@@ -28,9 +28,42 @@ bool operator==(const LayeredGraphNode& a, const LayeredGraphNode& b) {
   }
 }
 
-std::vector<LayeredGraphNode> ConstructBlockingFlow(
+LayeredGraphNode& LayeredGraph::operator[](size_t i) {
+  return nodes_[i];
+}
+
+const LayeredGraphNode& LayeredGraph::operator[](size_t i) const {
+  return nodes_[i];
+}
+
+size_t LayeredGraph::size() const {
+  return nodes_.size();
+}
+
+std::vector<LayeredGraphNode>::iterator LayeredGraph::begin() {
+  return nodes_.begin();
+}
+
+std::vector<LayeredGraphNode>::iterator LayeredGraph::end() {
+  return nodes_.end();
+}
+
+std::vector<LayeredGraphNode>::const_iterator LayeredGraph::begin() const {
+  return nodes_.begin();
+}
+
+std::vector<LayeredGraphNode>::const_iterator LayeredGraph::end() const {
+  return nodes_.end();
+}
+
+const std::vector<LayeredGraphNode>& LayeredGraph::NodeList() const {
+  return nodes_;
+}
+
+// static
+LayeredGraph LayeredGraph::ConstructBlockingFlow(
     const AugmentedDebtGraph& graph, uint64_t source, uint64_t sink) {
-  std::vector<LayeredGraphNode> layered_graph;
+  LayeredGraph layered_graph;
   std::deque<std::pair<uint64_t, uint32_t>> id_q;
   id_q.push_back({ source, 0 });
   // A map from node id's to first the depth it was discovered at, and later the
@@ -51,7 +84,7 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
       break;
     }
 
-    layered_graph.push_back(
+    layered_graph.nodes_.push_back(
         LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
                           .head = { .id = node_id, .level = depth } });
     for (const auto& [neighbor_id, capacity] : graph.AllDebts(node_id)) {
@@ -79,7 +112,7 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
       // Temporarily place neighbor_id in place of neighbor_head_idx. Will pass
       // through again at the end and correct all neighbor_head_idx values with
       // the complete visited_nodes map.
-      layered_graph.push_back(
+      layered_graph.nodes_.push_back(
           LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
                             .neighbor = { ._internal_neighbor_id = neighbor_id,
                                           .capacity = capacity } });
@@ -88,7 +121,7 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
 
   // Manually add the sink node since it was never explored.
   if (sink_depth != UINT32_MAX) {
-    layered_graph.push_back(
+    layered_graph.nodes_.push_back(
         LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
                           .head = { .id = sink, .level = sink_depth } });
   }
@@ -107,7 +140,8 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
   // them from the visited_nodes map if they have no more neighbors.
   uint64_t num_neighbors = 0;
   uint64_t num_tombstones = 0;
-  for (auto it = layered_graph.rbegin(); it != layered_graph.rend(); ++it) {
+  for (auto it = layered_graph.nodes_.rbegin();
+       it != layered_graph.nodes_.rend(); ++it) {
     if (it->type == LayeredGraphNodeType::Head) {
       // std::cout << "head " << it->head.id << " with " << num_neighbors
       //           << " neighbors" << std::endl;
@@ -119,7 +153,7 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
         const auto node_it = visited_nodes.find(it->head.id);
         // Replace the visited_nodes entry with the index of this head assuming
         // all elements will be shifted to the right after removing tombstones.
-        uint64_t cur_idx = layered_graph.rend() - it - 1;
+        uint64_t cur_idx = layered_graph.nodes_.rend() - it - 1;
         node_it->second = cur_idx + num_tombstones;
       }
       num_neighbors = 0;
@@ -168,9 +202,9 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
 
   // Update all neighbors with neighbor_head_idx to point to the head idx of the
   // neighbor instead of the id, and remove all tombstones.
-  for (uint64_t i = 0, j = 0; i < layered_graph.size(); i++) {
+  for (uint64_t i = 0, j = 0; i < layered_graph.nodes_.size(); i++) {
     // std::cout << "i: " << i << ", j: " << j << std::endl;
-    LayeredGraphNode node = layered_graph.at(i);
+    LayeredGraphNode node = layered_graph.nodes_.at(i);
     switch (node.type) {
       case LayeredGraphNodeType::Head:
         break;
@@ -194,8 +228,8 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
     layered_graph[j] = node;
     j++;
   }
-  layered_graph.resize(layered_graph.size() - num_tombstones);
-  layered_graph.shrink_to_fit();
+  layered_graph.nodes_.resize(layered_graph.nodes_.size() - num_tombstones);
+  layered_graph.nodes_.shrink_to_fit();
 
   // Now construct a blocking flow on the graph.
   struct StackElement {
@@ -205,7 +239,7 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
     Cents capacity;
   };
   std::vector<StackElement> stack;
-  if (!layered_graph.empty()) {
+  if (!layered_graph.nodes_.empty()) {
     stack.push_back(StackElement{
         .node_idx = 0,
         .cur_neighbor_idx = 1,
@@ -222,7 +256,7 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
     //           << element.cur_neighbor_idx << ", " << element.flow << ", "
     //           << element.capacity << std::endl;
 
-    if (element.cur_neighbor_idx == layered_graph.size()) {
+    if (element.cur_neighbor_idx == layered_graph.nodes_.size()) {
       // This is the sink.
       stack.back().flow += element.capacity;
       layered_graph[stack.back().cur_neighbor_idx - 1].neighbor.flow +=
@@ -257,6 +291,15 @@ std::vector<LayeredGraphNode> ConstructBlockingFlow(
   }
 
   return layered_graph;
+}
+
+Cents LayeredGraph::ComputeFlow() const {
+  Cents flow = 0;
+  for (uint64_t i = 1;
+       i < nodes_.size() && nodes_[i].type != LayeredGraphNodeType::Head; i++) {
+    flow += nodes_[i].neighbor.flow;
+  }
+  return flow;
 }
 
 }  // namespace debt_simpl

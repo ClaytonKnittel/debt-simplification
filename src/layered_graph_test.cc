@@ -49,7 +49,7 @@ TEST_F(TestBlockingFlow, TestSingleTransaction) {
   AugmentedDebtGraph augmented_graph = std::move(graph);
 
   const auto layered_graph =
-      ConstructBlockingFlow(augmented_graph, bob_id, alice_id);
+      LayeredGraph::ConstructBlockingFlow(augmented_graph, bob_id, alice_id);
   const std::vector expected_result = {
     LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
                       .head = { .id = bob_id, .level = 0 } },
@@ -59,7 +59,7 @@ TEST_F(TestBlockingFlow, TestSingleTransaction) {
     LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
                       .head = { .id = alice_id, .level = 1 } }
   };
-  EXPECT_THAT(layered_graph, ContainerEq(expected_result));
+  EXPECT_THAT(layered_graph.NodeList(), ContainerEq(expected_result));
 }
 
 TEST_F(TestBlockingFlow, TestNoPath) {
@@ -81,8 +81,9 @@ TEST_F(TestBlockingFlow, TestNoPath) {
   AugmentedDebtGraph augmented_graph = std::move(graph);
 
   const auto layered_graph =
-      ConstructBlockingFlow(augmented_graph, joe_id, alice_id);
-  EXPECT_THAT(layered_graph, ContainerEq(std::vector<LayeredGraphNode>()));
+      LayeredGraph::ConstructBlockingFlow(augmented_graph, joe_id, alice_id);
+  EXPECT_THAT(layered_graph.NodeList(),
+              ContainerEq(std::vector<LayeredGraphNode>()));
 }
 
 TEST_F(TestBlockingFlow, TestTwoPaths) {
@@ -116,7 +117,7 @@ TEST_F(TestBlockingFlow, TestTwoPaths) {
   AugmentedDebtGraph augmented_graph = std::move(graph);
 
   const auto layered_graph =
-      ConstructBlockingFlow(augmented_graph, eunice_id, bob_id);
+      LayeredGraph::ConstructBlockingFlow(augmented_graph, eunice_id, bob_id);
   ASSERT_EQ(layered_graph.size(), 3 + 2 + 2 + 1);
 
   EXPECT_EQ(layered_graph[0],
@@ -176,7 +177,7 @@ TEST_F(TestBlockingFlow, TestPrunePaths) {
   AugmentedDebtGraph augmented_graph = std::move(graph);
 
   const auto layered_graph =
-      ConstructBlockingFlow(augmented_graph, eunice_id, bob_id);
+      LayeredGraph::ConstructBlockingFlow(augmented_graph, eunice_id, bob_id);
   ASSERT_EQ(layered_graph.size(), 2 + 2 + 1);
 
   EXPECT_EQ(layered_graph[0],
@@ -262,7 +263,8 @@ TEST_F(TestBlockingFlow, TestMultipleFlowsPossible) {
 
   AugmentedDebtGraph augmented_graph = std::move(graph);
 
-  const auto layered_graph = ConstructBlockingFlow(augmented_graph, a_id, f_id);
+  const auto layered_graph =
+      LayeredGraph::ConstructBlockingFlow(augmented_graph, a_id, f_id);
   ASSERT_EQ(layered_graph.size(), 3 + 2 + 3 + 2 + 2 + 1);
 
   uint64_t a_idx = UINT64_MAX, b_idx = UINT64_MAX, c_idx = UINT64_MAX,
