@@ -14,8 +14,7 @@ bool operator==(const LayeredGraphNode& a, const LayeredGraphNode& b) {
   }
   switch (a.type) {
     case LayeredGraphNodeType::Head: {
-      return a.head.id == b.head.id &&
-             a.head._internal_level == b.head._internal_level;
+      return a.head.id == b.head.id && a.head.level == b.head.level;
     }
     case LayeredGraphNodeType::Neighbor: {
       return a.neighbor.neighbor_head_idx == b.neighbor.neighbor_head_idx &&
@@ -57,9 +56,9 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructBlockingFlow(
       break;
     }
 
-    layered_graph.push_back(LayeredGraphNode{
-        .type = LayeredGraphNodeType::Head,
-        .head = { .id = node_id, ._internal_level = depth } });
+    layered_graph.push_back(
+        LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                          .head = { .id = node_id, .level = depth } });
     for (const auto& [neighbor_id, capacity] : graph_.AllDebts(node_id)) {
       if (capacity == 0) {
         continue;
@@ -94,9 +93,9 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructBlockingFlow(
 
   // Manually add the sink node since it was never explored.
   if (sink_depth != UINT32_MAX) {
-    layered_graph.push_back(LayeredGraphNode{
-        .type = LayeredGraphNodeType::Head,
-        .head = { .id = sink, ._internal_level = sink_depth } });
+    layered_graph.push_back(
+        LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
+                          .head = { .id = sink, .level = sink_depth } });
   }
 
   // Remove all visited nodes with depth == sink_depth, except for the sink.
@@ -204,10 +203,61 @@ std::vector<LayeredGraphNode> ExpenseSimplifier::ConstructBlockingFlow(
   layered_graph.shrink_to_fit();
 
   // Now construct a blocking flow on the graph.
-  std::vector<std::pair<uint64_t, uint64_t>> stack;
+  struct StackElement {
+    uint64_t node_idx;
+    uint64_t cur_neighbor_idx;
+    Cents flow;
+    Cents capacity;
+  };
+  std::vector<StackElement> stack;
+  if (!layered_graph.empty()) {
+    stack.push_back(StackElement{
+        .node_idx = 0,
+        .cur_neighbor_idx = 1,
+        .flow = 0,
+        .capacity = INT64_MAX,
+    });
+  }
+
   while (!stack.empty()) {
-    const auto [node_id, max_flow] = stack.back();
+    StackElement element = stack.back();
     stack.pop_back();
+
+    // std::cout << "Exploring " << element.node_idx << ", "
+    //           << element.cur_neighbor_idx << ", " << element.flow << ", "
+    //           << element.capacity << std::endl;
+
+    if (element.cur_neighbor_idx == layered_graph.size()) {
+      // This is the sink.
+      stack.back().flow += element.capacity;
+      layered_graph[stack.back().cur_neighbor_idx - 1].neighbor.flow +=
+          element.capacity;
+      continue;
+    } else if (layered_graph[element.cur_neighbor_idx].type ==
+               LayeredGraphNodeType::Head) {
+      // We've already explored all neighbors of this node.
+      if (!stack.empty()) {
+        stack.back().flow += element.flow;
+        layered_graph[stack.back().cur_neighbor_idx - 1].neighbor.flow +=
+            element.flow;
+      }
+      continue;
+    }
+
+    const LayeredGraphNode& neighbor_node =
+        layered_graph[element.cur_neighbor_idx];
+    const uint64_t neighbor_idx = neighbor_node.neighbor.neighbor_head_idx;
+    const StackElement neighbor = StackElement{
+      .node_idx = neighbor_idx,
+      .cur_neighbor_idx = neighbor_idx + 1,
+      .flow = 0,
+      .capacity = std::min(element.capacity - element.flow,
+                           neighbor_node.neighbor.capacity),
+    };
+
+    element.cur_neighbor_idx++;
+    stack.push_back(element);
+    stack.push_back(neighbor);
   }
 
   return layered_graph;

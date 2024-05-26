@@ -56,13 +56,14 @@ int main() {
   for (const auto& node : layered_graph) {
     switch (node.type) {
       case debt_simpl::LayeredGraphNodeType::Head: {
-        std::cout << "Head: " << node.head.id << " (" << node.head.flow << ")"
+        std::cout << "Head: " << node.head.id << " (" << node.head.level << ")"
                   << std::endl;
         break;
       }
       case debt_simpl::LayeredGraphNodeType::Neighbor: {
         std::cout << "Neighbor: " << node.neighbor.neighbor_head_idx << " ("
-                  << node.neighbor.capacity << ")" << std::endl;
+                  << node.neighbor.flow << " of " << node.neighbor.capacity
+                  << ")" << std::endl;
         break;
       }
       case debt_simpl::LayeredGraphNodeType::Tombstone: {

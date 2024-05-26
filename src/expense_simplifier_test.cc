@@ -49,11 +49,12 @@ TEST_F(TestBlockingFlow, TestSingleTransaction) {
   const auto layered_graph = solver.ConstructBlockingFlow(bob_id, alice_id);
   const std::vector expected_result = {
     LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                      .head = { .id = bob_id, .flow = 100 } },
-    LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
-                      .neighbor = { .neighbor_head_idx = 2, .capacity = 100 } },
+                      .head = { .id = bob_id, .level = 0 } },
+    LayeredGraphNode{
+        .type = LayeredGraphNodeType::Neighbor,
+        .neighbor = { .neighbor_head_idx = 2, .capacity = 100, .flow = 100 } },
     LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                      .head = { .id = alice_id, .flow = 0 } }
+                      .head = { .id = alice_id, .level = 1 } }
   };
   EXPECT_THAT(layered_graph, ContainerEq(expected_result));
 }
@@ -115,29 +116,29 @@ TEST_F(TestBlockingFlow, TestTwoPaths) {
 
   EXPECT_EQ(layered_graph[0],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = eunice_id, .flow = 100 } }));
+                               .head = { .id = eunice_id, .level = 0 } }));
   EXPECT_EQ(layered_graph[1].type, LayeredGraphNodeType::Neighbor);
   EXPECT_EQ(layered_graph[2].type, LayeredGraphNodeType::Neighbor);
 
   EXPECT_THAT(
       layered_graph[3],
       AnyOf(Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                                 .head = { .id = alice_id, .flow = 100 } }),
+                                 .head = { .id = alice_id, .level = 1 } }),
             Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                                 .head = { .id = joe_id, .flow = 100 } })));
+                                 .head = { .id = joe_id, .level = 1 } })));
   EXPECT_EQ(layered_graph[4].type, LayeredGraphNodeType::Neighbor);
 
   EXPECT_THAT(
       layered_graph[5],
       AnyOf(Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                                 .head = { .id = alice_id, .flow = 100 } }),
+                                 .head = { .id = alice_id, .level = 1 } }),
             Eq(LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                                 .head = { .id = joe_id, .flow = 100 } })));
+                                 .head = { .id = joe_id, .level = 1 } })));
   EXPECT_EQ(layered_graph[6].type, LayeredGraphNodeType::Neighbor);
 
   EXPECT_EQ(layered_graph[7],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = bob_id, .flow = 0 } }));
+                               .head = { .id = bob_id, .level = 2 } }));
 }
 
 TEST_F(TestBlockingFlow, TestPrunePaths) {
@@ -174,27 +175,29 @@ TEST_F(TestBlockingFlow, TestPrunePaths) {
 
   EXPECT_EQ(layered_graph[0],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = eunice_id, .flow = 50 } }));
+                               .head = { .id = eunice_id, .level = 0 } }));
   EXPECT_EQ(layered_graph[1],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
                                .neighbor = {
                                    .neighbor_head_idx = 2,
                                    .capacity = 100,
+                                   .flow = 50,
                                } }));
 
   EXPECT_EQ(layered_graph[2],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = alice_id, .flow = 50 } }));
+                               .head = { .id = alice_id, .level = 1 } }));
   EXPECT_EQ(layered_graph[3],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Neighbor,
                                .neighbor = {
                                    .neighbor_head_idx = 4,
                                    .capacity = 50,
+                                   .flow = 50,
                                } }));
 
   EXPECT_EQ(layered_graph[4],
             (LayeredGraphNode{ .type = LayeredGraphNodeType::Head,
-                               .head = { .id = bob_id, .flow = 0 } }));
+                               .head = { .id = bob_id, .level = 2 } }));
 }
 
 }  // namespace debt_simpl

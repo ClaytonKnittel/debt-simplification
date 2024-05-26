@@ -25,16 +25,9 @@ struct LayeredGraphNode {
       // the neighbors of this user.
       uint64_t id;
 
-      union {
-        // The level of this node, i.e. the distance between this node and the
-        // source node. This == 0 for the source node. This is only meaningful
-        // during the construction of the layered graph and will not be defined
-        // in the graph produced by `ConstructLayeredGraph()`.
-        uint32_t _internal_level;
-
-        // The flow going through this node.
-        uint64_t flow;
-      };
+      // The level of this node, i.e. the distance between this node and the
+      // source node. This == 0 for the source node.
+      uint32_t level;
     } head;
 
     // Members are defined if `type` == Neighbor.
@@ -44,6 +37,7 @@ struct LayeredGraphNode {
         // of the layered graph, and will not be defined in the graph produced
         // by `ConstructLayeredGraph()`.
         uint64_t _internal_neighbor_id;
+
         // The index in the layered graph of the head of one of the neighbors
         // this user is connected to.
         uint64_t neighbor_head_idx;
@@ -52,6 +46,9 @@ struct LayeredGraphNode {
       // The available capacity for flow of money from this user to the
       // neighbor.
       Cents capacity;
+
+      // The flow of money from this node to the neighbor.
+      Cents flow;
     } neighbor;
   };
 };
