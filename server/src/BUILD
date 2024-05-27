@@ -2,6 +2,7 @@ cc_binary(
   name = "main",
   srcs = ["main.cc"],
   deps = [
+    ":service",
     "//src/expense_simplifier",
     "//src/expense_simplifier:debt_graph",
     "//src/expense_simplifier:layered_graph",
