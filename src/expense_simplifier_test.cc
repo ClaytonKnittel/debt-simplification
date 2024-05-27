@@ -139,6 +139,10 @@ TEST_F(TestExpenseSimplifier, LargestDebtorChosenFirst) {
               IsOkAndHolds(0));
   EXPECT_THAT(solver.MinimalTransactions().AmountOwed("sink", "y"),
               IsOkAndHolds(0));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("x", "largest"),
+              IsOkAndHolds(0));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("y", "largest"),
+              IsOkAndHolds(0));
 }
 
 }  // namespace debt_simpl
