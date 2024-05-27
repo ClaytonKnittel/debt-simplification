@@ -145,4 +145,30 @@ TEST_F(TestExpenseSimplifier, LargestDebtorChosenFirst) {
               IsOkAndHolds(0));
 }
 
+TEST_F(TestExpenseSimplifier, TwoMinimalTransactions) {
+  ASSERT_OK_AND_DEFINE(ExpenseSimplifier, solver, CreateFromString(R"(
+    transactions {
+      lender: "a"
+      receiver: "b"
+      cents: 1
+    }
+    transactions {
+      lender: "b"
+      receiver: "c"
+      cents: 2
+    }
+    transactions {
+      lender: "a"
+      receiver: "c"
+      cents: 2
+    })"));
+
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("a", "b"),
+              IsOkAndHolds(0));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("a", "c"),
+              IsOkAndHolds(3));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("b", "c"),
+              IsOkAndHolds(1));
+}
+
 }  // namespace debt_simpl
