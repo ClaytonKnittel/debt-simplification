@@ -3,6 +3,7 @@ cc_binary(
   srcs = ["main.cc"],
   deps = [
     ":service",
+    "//modules/httplib",
   ],
 )
 
