@@ -16,6 +16,7 @@ cc_library(
   deps = [
     "//modules/httplib",
     "@abseil-cpp//absl/status:statusor",
+    "@abseil-cpp//absl/strings",
   ],
 )
 

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "modules/httplib/httplib.h"
 
 StaticFileServer::~StaticFileServer() {}
@@ -13,8 +14,7 @@ StaticFileServer::~StaticFileServer() {}
 absl::StatusOr<StaticFileServer> StaticFileServer::New(const std::string& dir) {
   StaticFileServer fs;
   if (!fs.server_->set_mount_point("/", dir)) {
-    return absl::InternalError(
-        "No such directory \"../client/dist/dev/static\"");
+    return absl::InternalError(absl::StrCat("No such directory \"", dir, "\""));
   }
 
   return std::move(fs);
