@@ -30,7 +30,7 @@ class TestDebtGraph : public ::testing::Test {
   }
 };
 
-class TestLargestPlayers : public TestDebtGraph {};
+class TestAugmentedDebtGraph : public TestDebtGraph {};
 
 TEST_F(TestDebtGraph, SingleTransaction) {
   DebtGraph graph;
@@ -127,6 +127,46 @@ TEST_F(TestDebtGraph, TwoTransactions) {
   EXPECT_THAT(graph.TotalDebt("alice"), IsOkAndHolds(-100));
   EXPECT_THAT(graph.TotalDebt("bob"), IsOkAndHolds(50));
   EXPECT_THAT(graph.TotalDebt("joe"), IsOkAndHolds(50));
+}
+
+TEST_F(TestAugmentedDebtGraph, TotalDebt) {
+  DebtGraph graph;
+  ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
+    transactions {
+      lender: "alice"
+      receiver: "bob"
+      cents: 100
+    })"));
+
+  ASSERT_OK_AND_DEFINE(uint64_t, alice_id, graph.FindUserId("alice"));
+  ASSERT_OK_AND_DEFINE(uint64_t, bob_id, graph.FindUserId("bob"));
+
+  AugmentedDebtGraph augmented_graph = std::move(graph);
+
+  EXPECT_EQ(augmented_graph.Debt(alice_id, bob_id), 0);
+  EXPECT_EQ(augmented_graph.Debt(bob_id, alice_id), 100);
+
+  EXPECT_EQ(augmented_graph.TotalDebt(alice_id), -100);
+  EXPECT_EQ(augmented_graph.TotalDebt(bob_id), 100);
+}
+
+TEST_F(TestAugmentedDebtGraph, DebtFlow) {
+  DebtGraph graph;
+  ASSERT_OK_AND_ASSIGN(graph, CreateFromString(R"(
+    transactions {
+      lender: "alice"
+      receiver: "bob"
+      cents: 100
+    })"));
+
+  ASSERT_OK_AND_DEFINE(uint64_t, alice_id, graph.FindUserId("alice"));
+  ASSERT_OK_AND_DEFINE(uint64_t, bob_id, graph.FindUserId("bob"));
+
+  AugmentedDebtGraph augmented_graph = std::move(graph);
+  augmented_graph.PushFlow(bob_id, alice_id, 10);
+
+  EXPECT_EQ(augmented_graph.TotalDebt(alice_id), -90);
+  EXPECT_EQ(augmented_graph.TotalDebt(bob_id), 90);
 }
 
 }  // namespace debt_simpl

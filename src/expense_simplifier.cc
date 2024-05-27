@@ -35,7 +35,7 @@ void ExpenseSimplifier::BuildMinimalTransactions(AugmentedDebtGraph&& graph) {
     const uint64_t lender_id = edge.lender_id;
     const uint64_t receiver_id = edge.receiver_id;
 
-    const Cents debt = graph.Debt(lender_id, receiver_id);
+    const Cents debt = graph.Debt(receiver_id, lender_id);
     if (debt == 0) {
       continue;
     }

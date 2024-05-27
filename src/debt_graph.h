@@ -20,7 +20,8 @@ class DebtGraphNode {
 
   void AddDebt(uint64_t ower_id, Cents amount);
 
-  Cents Debt(uint64_t ower_id) const;
+  // Returns the amount of debt this user owes `user_id`.
+  Cents Debt(uint64_t user_id) const;
 
   Cents TotalDebt() const;
 
@@ -56,8 +57,8 @@ class DebtGraphInternal {
   // [0, NumUsers()).
   uint64_t NumUsers() const;
 
-  // Returns the flow of money from `receiver_id` to `lender_id`.
-  Cents Debt(uint64_t lender_id, uint64_t receiver_id) const;
+  // Returns the debt `receiver_id` owes `lender_id`.
+  Cents Debt(uint64_t receiver_id, uint64_t lender_id) const;
 
   // Returns the total debt this user owes.
   Cents TotalDebt(uint64_t id) const;
@@ -88,7 +89,7 @@ class DebtGraphInternal {
 
  private:
   // Adds debt that `lender_id` is owed from `receiver_id`.
-  void AddDebt(uint64_t lender_id, uint64_t receiver_id, Cents amount);
+  void AddDebt(uint64_t receiver_id, uint64_t lender_id, Cents amount);
 
   // List of all nodes of the graph. A user's id is the index into this list
   // where their corresponding node is.

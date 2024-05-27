@@ -105,4 +105,40 @@ TEST_F(TestExpenseSimplifier, TriangleReduced) {
               IsOkAndHolds(200));
 }
 
+TEST_F(TestExpenseSimplifier, LargestDebtorChosenFirst) {
+  ASSERT_OK_AND_DEFINE(ExpenseSimplifier, solver, CreateFromString(R"(
+    transactions {
+      lender: "sink"
+      receiver: "largest"
+      cents: 1
+    }
+    transactions {
+      lender: "sink"
+      receiver: "x"
+      cents: 2
+    }
+    transactions {
+      lender: "sink"
+      receiver: "y"
+      cents: 3
+    }
+    transactions {
+      lender: "x"
+      receiver: "largest"
+      cents: 2
+    }
+    transactions {
+      lender: "y"
+      receiver: "largest"
+      cents: 3
+    })"));
+
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("sink", "largest"),
+              IsOkAndHolds(6));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("sink", "x"),
+              IsOkAndHolds(0));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("sink", "y"),
+              IsOkAndHolds(0));
+}
+
 }  // namespace debt_simpl

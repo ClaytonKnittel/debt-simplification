@@ -18,8 +18,8 @@ void DebtGraphNode::AddDebt(uint64_t ower_id, Cents amount) {
   total_debt_ += amount;
 }
 
-Cents DebtGraphNode::Debt(uint64_t ower_id) const {
-  const auto it = debts_.find(ower_id);
+Cents DebtGraphNode::Debt(uint64_t user_id) const {
+  const auto it = debts_.find(user_id);
   if (it == debts_.cend()) {
     return 0;
   } else {
@@ -65,7 +65,7 @@ uint64_t DebtGraphInternal::NumUsers() const {
   return static_cast<uint64_t>(node_list_.size());
 }
 
-Cents DebtGraphInternal::Debt(uint64_t lender_id, uint64_t receiver_id) const {
+Cents DebtGraphInternal::Debt(uint64_t receiver_id, uint64_t lender_id) const {
   return node_list_[receiver_id].Debt(lender_id);
 }
 
@@ -74,8 +74,8 @@ Cents DebtGraphInternal::TotalDebt(uint64_t id) const {
 }
 
 void DebtGraphInternal::PushFlow(uint64_t from, uint64_t to, Cents amount) {
-  AddDebt(from, to, -amount);
-  AddDebt(to, from, amount);
+  AddDebt(from, to, amount);
+  AddDebt(to, from, -amount);
 }
 
 void DebtGraphInternal::EraseEdge(uint64_t user1_id, uint64_t user2_id) {
@@ -139,7 +139,7 @@ absl::StatusOr<Cents> DebtGraph::AmountOwed(absl::string_view lender,
   ASSIGN_OR_RETURN(lender_id, FindUserId(lender));
   ASSIGN_OR_RETURN(receiver_id, FindUserId(receiver));
 
-  return Debt(lender_id, receiver_id);
+  return Debt(receiver_id, lender_id);
 }
 
 absl::StatusOr<Cents> DebtGraph::TotalDebt(absl::string_view user) const {
@@ -151,7 +151,7 @@ absl::Status DebtGraph::AddTransaction(const Transaction& t) {
   uint64_t lender_id = FindOrAssignUserId(t.lender());
   uint64_t receiver_id = FindOrAssignUserId(t.receiver());
 
-  PushFlow(receiver_id, lender_id, t.cents());
+  PushFlow(lender_id, receiver_id, t.cents());
   return absl::OkStatus();
 }
 
