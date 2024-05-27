@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include "grpcpp/server_builder.h"
-#include "modules/httplib/httplib.h"
 
 #include "src/service.h"
 
