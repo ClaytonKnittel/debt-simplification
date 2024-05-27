@@ -8,7 +8,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 
-#include "src/expense_simplifier/debts.pb.h"
+#include "proto/debts.pb.h"
 #include "src/expense_simplifier/utils.h"
 
 namespace debt_simpl {

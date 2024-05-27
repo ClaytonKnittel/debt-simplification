@@ -1,5 +1,3 @@
-load("@rules_proto//proto:defs.bzl", "proto_library")
-
 cc_binary(
   name = "main",
   srcs = ["main.cc"],
@@ -13,8 +11,8 @@ cc_library(
   hdrs = ["debt_graph.h"],
   srcs = ["debt_graph.cc"],
   deps = [
-    ":debts_cc_proto",
     ":utils",
+    "//proto:debts_cc_proto",
     "@abseil-cpp//absl/container:flat_hash_map",
     "@abseil-cpp//absl/status:statusor",
     "@abseil-cpp//absl/strings:str_format",
@@ -79,19 +77,6 @@ cc_test(
     ":utils",
     "@googletest//:gtest_main",
     "@protobuf//:protobuf",
-  ],
-)
-
-
-proto_library(
-  name = "debts_proto",
-  srcs = ["debts.proto"],
-)
-
-cc_proto_library(
-  name = "debts_cc_proto",
-  deps = [
-    ":debts_proto",
   ],
 )
 

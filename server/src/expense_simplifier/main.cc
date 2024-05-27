@@ -2,8 +2,8 @@
 
 #include "google/protobuf/text_format.h"
 
+#include "proto/debts.pb.h"
 #include "src/expense_simplifier/debt_graph.h"
-#include "src/expense_simplifier/debts.pb.h"
 #include "src/expense_simplifier/expense_simplifier.h"
 #include "src/expense_simplifier/layered_graph.h"
 #include "src/expense_simplifier/utils.h"
