@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "src/debt_graph.h"
+#include "src/expense_simplifier/debt_graph.h"
 
 namespace debt_simpl {
 

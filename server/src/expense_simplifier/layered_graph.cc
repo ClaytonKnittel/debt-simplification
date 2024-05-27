@@ -1,4 +1,4 @@
-#include "src/layered_graph.h"
+#include "src/expense_simplifier/layered_graph.h"
 
 #include <deque>
 #include <stdint.h>
@@ -6,7 +6,7 @@
 
 #include "absl/container/flat_hash_map.h"
 
-#include "src/debt_graph.h"
+#include "src/expense_simplifier/debt_graph.h"
 
 namespace debt_simpl {
 

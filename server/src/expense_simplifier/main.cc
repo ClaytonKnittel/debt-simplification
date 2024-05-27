@@ -2,11 +2,11 @@
 
 #include "google/protobuf/text_format.h"
 
-#include "src/debt_graph.h"
-#include "src/debts.pb.h"
-#include "src/expense_simplifier.h"
-#include "src/layered_graph.h"
-#include "utils.h"
+#include "src/expense_simplifier/debt_graph.h"
+#include "src/expense_simplifier/debts.pb.h"
+#include "src/expense_simplifier/expense_simplifier.h"
+#include "src/expense_simplifier/layered_graph.h"
+#include "src/expense_simplifier/utils.h"
 
 using google::protobuf::TextFormat;
 

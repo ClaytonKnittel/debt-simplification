@@ -1,4 +1,4 @@
-#include "src/debt_graph.h"
+#include "src/expense_simplifier/debt_graph.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -8,8 +8,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 
-#include "src/debts.pb.h"
-#include "src/utils.h"
+#include "src/expense_simplifier/debts.pb.h"
+#include "src/expense_simplifier/utils.h"
 
 namespace debt_simpl {
 

@@ -1,4 +1,4 @@
-#include "src/debt_graph.h"
+#include "src/expense_simplifier/debt_graph.h"
 
 #include <cstdint>
 
@@ -8,7 +8,7 @@
 #include "google/protobuf/text_format.h"
 #include "gtest/gtest.h"
 
-#include "src/utils.h"
+#include "src/expense_simplifier/utils.h"
 
 namespace debt_simpl {
 

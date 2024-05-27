@@ -1,4 +1,4 @@
-#include "src/expense_simplifier.h"
+#include "src/expense_simplifier/expense_simplifier.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -7,8 +7,8 @@
 #include "google/protobuf/text_format.h"
 #include "gtest/gtest.h"
 
-#include "src/debt_graph.h"
-#include "src/utils.h"
+#include "src/expense_simplifier/debt_graph.h"
+#include "src/expense_simplifier/utils.h"
 
 namespace debt_simpl {
 

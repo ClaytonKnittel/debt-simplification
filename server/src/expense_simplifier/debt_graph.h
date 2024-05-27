@@ -8,7 +8,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 
-#include "src/debts.pb.h"
+#include "src/expense_simplifier/debts.pb.h"
 
 namespace debt_simpl {
 
