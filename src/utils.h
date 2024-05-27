@@ -44,6 +44,20 @@ absl::Status DoAssignOrReturn(T &lhs, absl::StatusOr<T> result) {
   ASSIGN_OR_RETURN_IMPL(UTILS_CONCAT_NAME(_status_or_value, __COUNTER__), lhs, \
                         rexpr);
 
+#define DEFINE_OR_RETURN_IMPL(type, lhs, tmp, rexpr) \
+  absl::StatusOr<type> tmp = (rexpr);                \
+  if (!tmp.ok()) {                                   \
+    return tmp.status();                             \
+  }                                                  \
+  type &lhs = tmp.value();
+
+// Executes an expression that returns an absl::StatusOr<T>, and defines a new
+// variable with given type and name to the result if the error code is OK. If
+// the Status is non-OK, returns the error.
+#define DEFINE_OR_RETURN(type, lhs, rexpr) \
+  DEFINE_OR_RETURN_IMPL(                   \
+      type, lhs, UTILS_CONCAT_NAME(__define_or_return_, __COUNTER__), rexpr)
+
 // Executes an expression that returns an absl::StatusOr<T>, and assigns the
 // contained variable to lhs if the error code is OK. If the Status is non-OK,
 // generates a test failure and returns from the current function, which must
@@ -77,9 +91,10 @@ absl::Status DoAssignOrReturn(T &lhs, absl::StatusOr<T> result) {
 // variable with given type and name to the result if the error code is OK. If
 // the Status is non-OK, generates a test failure and returns from the current
 // function, which must have a void return type.
-#define ASSERT_OK_AND_DEFINE(type, lhs, rexpr)                                 \
-  ASSERT_OK_AND_DEFINE_IMPL(type, lhs, UTILS_CONCAT_NAME(__lhs_, __COUNTER__), \
-                            rexpr)
+#define ASSERT_OK_AND_DEFINE(type, lhs, rexpr)                            \
+  ASSERT_OK_AND_DEFINE_IMPL(                                              \
+      type, lhs, UTILS_CONCAT_NAME(__assert_ok_and_define_, __COUNTER__), \
+      rexpr)
 
 namespace debt_simpl {
 
