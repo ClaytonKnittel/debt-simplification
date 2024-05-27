@@ -86,7 +86,7 @@ IncludeCategories:
   - Regex:           '^<.*>'
     Priority:        1
     CaseSensitive:   true
-  - Regex:           '^"(absl|google|gmock|gtest)/.*\.h"'
+  - Regex:           '^"(absl|gmock|google|grpc|grpcpp|gtest)/.*\.h"'
     Priority:        2
     CaseSensitive:   true
   - Regex:           '".*\.h"'
