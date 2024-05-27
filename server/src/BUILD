@@ -1,3 +1,14 @@
+cc_binary(
+  name = "main",
+  srcs = ["main.cc"],
+  deps = [
+    "//src/expense_simplifier",
+    "//src/expense_simplifier:debt_graph",
+    "//src/expense_simplifier:layered_graph",
+    "//src/expense_simplifier:utils",
+  ],
+)
+
 cc_library(
   name = "service",
   hdrs = ["service.h"],

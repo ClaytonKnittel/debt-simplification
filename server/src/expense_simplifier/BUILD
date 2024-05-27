@@ -1,9 +1,5 @@
-cc_binary(
-  name = "main",
-  srcs = ["main.cc"],
-  deps = [
-    ":expense_simplifier",
-  ],
+package(
+  default_visibility = ["//visibility:public"],
 )
 
 cc_library(
