@@ -7,6 +7,8 @@
 #include "absl/status/statusor.h"
 #include "modules/httplib/httplib.h"
 
+StaticFileServer::~StaticFileServer() {}
+
 // static
 absl::StatusOr<StaticFileServer> StaticFileServer::New(const std::string& dir) {
   StaticFileServer fs;
@@ -15,10 +17,12 @@ absl::StatusOr<StaticFileServer> StaticFileServer::New(const std::string& dir) {
         "No such directory \"../client/dist/dev/static\"");
   }
 
-  return fs;
+  return std::move(fs);
 }
 
 bool StaticFileServer::Listen(const std::string& addr, uint16_t port) {
+  std::cout << "Static file server listening on " << addr << ":" << port
+            << std::endl;
   return server_->listen(addr, port);
 }
 

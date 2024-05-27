@@ -4,6 +4,7 @@ cc_binary(
   deps = [
     ":service",
     ":static_file_server",
+    "@abseil-cpp//absl/strings",
     "@com_github_grpc_grpc//:grpc++",
   ],
 )

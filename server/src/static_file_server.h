@@ -10,6 +10,11 @@ class Server;
 
 class StaticFileServer {
  public:
+  ~StaticFileServer();
+
+  StaticFileServer(StaticFileServer&&) = default;
+  StaticFileServer& operator=(StaticFileServer&&) = default;
+
   static absl::StatusOr<StaticFileServer> New(const std::string& dir);
 
   bool Listen(const std::string& addr, uint16_t port);
