@@ -51,4 +51,58 @@ TEST_F(TestExpenseSimplifier, Empty) {
   EXPECT_EQ(solver.MinimalTransactions().NumUsers(), 0);
 }
 
+// Tests that a chain of transactions remains unchanged, since users can't owe
+// other users who they didn't originally owe anything to.
+TEST_F(TestExpenseSimplifier, TransactionChainUnchanged) {
+  ASSERT_OK_AND_DEFINE(ExpenseSimplifier, solver, CreateFromString(R"(
+    transactions {
+      lender: "a"
+      receiver: "b"
+      cents: 100
+    }
+    transactions {
+      lender: "b"
+      receiver: "c"
+      cents: 100
+    }
+    transactions {
+      lender: "c"
+      receiver: "d"
+      cents: 100
+    })"));
+
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("a", "b"),
+              IsOkAndHolds(100));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("b", "c"),
+              IsOkAndHolds(100));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("c", "d"),
+              IsOkAndHolds(100));
+}
+
+TEST_F(TestExpenseSimplifier, TriangleReduced) {
+  ASSERT_OK_AND_DEFINE(ExpenseSimplifier, solver, CreateFromString(R"(
+    transactions {
+      lender: "a"
+      receiver: "b"
+      cents: 100
+    }
+    transactions {
+      lender: "b"
+      receiver: "c"
+      cents: 100
+    }
+    transactions {
+      lender: "a"
+      receiver: "c"
+      cents: 100
+    })"));
+
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("a", "b"),
+              IsOkAndHolds(0));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("b", "c"),
+              IsOkAndHolds(0));
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("a", "c"),
+              IsOkAndHolds(200));
+}
+
 }  // namespace debt_simpl

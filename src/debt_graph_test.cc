@@ -43,6 +43,9 @@ TEST_F(TestDebtGraph, SingleTransaction) {
 
   EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(100));
   EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(-100));
+
+  EXPECT_THAT(graph.TotalDebt("alice"), IsOkAndHolds(-100));
+  EXPECT_THAT(graph.TotalDebt("bob"), IsOkAndHolds(100));
 }
 
 TEST_F(TestDebtGraph, DebtsCombine) {
@@ -61,6 +64,9 @@ TEST_F(TestDebtGraph, DebtsCombine) {
 
   EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(1500));
   EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(-1500));
+
+  EXPECT_THAT(graph.TotalDebt("alice"), IsOkAndHolds(-1500));
+  EXPECT_THAT(graph.TotalDebt("bob"), IsOkAndHolds(1500));
 }
 
 TEST_F(TestDebtGraph, DebtAndCreditCancel) {
@@ -79,6 +85,9 @@ TEST_F(TestDebtGraph, DebtAndCreditCancel) {
 
   EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(50));
   EXPECT_THAT(graph.AmountOwed("bob", "alice"), IsOkAndHolds(-50));
+
+  EXPECT_THAT(graph.TotalDebt("alice"), IsOkAndHolds(-50));
+  EXPECT_THAT(graph.TotalDebt("bob"), IsOkAndHolds(50));
 }
 
 TEST_F(TestDebtGraph, UnknownUser) {
@@ -93,6 +102,8 @@ TEST_F(TestDebtGraph, UnknownUser) {
   EXPECT_THAT(graph.AmountOwed("x", "y"), IsOkAndHolds(200));
   EXPECT_THAT(graph.AmountOwed("x", "z"), Not(IsOk()));
   EXPECT_THAT(graph.AmountOwed("z", "y"), Not(IsOk()));
+
+  EXPECT_THAT(graph.TotalDebt("z"), Not(IsOk()));
 }
 
 TEST_F(TestDebtGraph, TwoTransactions) {
@@ -112,6 +123,10 @@ TEST_F(TestDebtGraph, TwoTransactions) {
   EXPECT_THAT(graph.AmountOwed("alice", "bob"), IsOkAndHolds(100));
   EXPECT_THAT(graph.AmountOwed("bob", "joe"), IsOkAndHolds(50));
   EXPECT_THAT(graph.AmountOwed("alice", "joe"), IsOkAndHolds(0));
+
+  EXPECT_THAT(graph.TotalDebt("alice"), IsOkAndHolds(-100));
+  EXPECT_THAT(graph.TotalDebt("bob"), IsOkAndHolds(50));
+  EXPECT_THAT(graph.TotalDebt("joe"), IsOkAndHolds(50));
 }
 
 }  // namespace debt_simpl

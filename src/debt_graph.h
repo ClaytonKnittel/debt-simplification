@@ -22,6 +22,8 @@ class DebtGraphNode {
 
   Cents Debt(uint64_t ower_id) const;
 
+  Cents TotalDebt() const;
+
   void ClearCredits();
 
   void EraseDebt(uint64_t id);
@@ -32,6 +34,9 @@ class DebtGraphNode {
 
  private:
   absl::flat_hash_map<uint64_t, Cents> debts_;
+
+  // Total amount of money this user owes.
+  Cents total_debt_;
 };
 
 struct DebtGraphEdge {
@@ -53,6 +58,9 @@ class DebtGraphInternal {
 
   // Returns the flow of money from `receiver_id` to `lender_id`.
   Cents Debt(uint64_t lender_id, uint64_t receiver_id) const;
+
+  // Returns the total debt this user owes.
+  Cents TotalDebt(uint64_t id) const;
 
   // Pushes flow of money from `from` to `to`. This adds `amount` debt owed to
   // `to` by `from`. This can be used to offset debt `from` owes `to`.
@@ -101,6 +109,10 @@ class DebtGraph : public DebtGraphInternal {
   // Returns the amount of money `receiver` owes `lender`.
   absl::StatusOr<Cents> AmountOwed(absl::string_view lender,
                                    absl::string_view receiver) const;
+
+  // Returns the total amount of money this user owes other users. May be
+  // negative if they are owed money.
+  absl::StatusOr<Cents> TotalDebt(absl::string_view user) const;
 
   absl::Status AddTransaction(const Transaction& t);
 

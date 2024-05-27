@@ -75,7 +75,6 @@ LayeredGraph LayeredGraph::ConstructBlockingFlow(
   while (!id_q.empty()) {
     const auto [node_id, depth] = id_q.front();
     id_q.pop_front();
-    // std::cout << "Popped " << node_id << " at depth " << depth << std::endl;
 
     // Break once we reach the sink depth. No other exploration here is useful
     // since all shortest paths leading to the sink node have already been
@@ -300,6 +299,31 @@ Cents LayeredGraph::ComputeFlow() const {
     flow += nodes_[i].neighbor.flow;
   }
   return flow;
+}
+
+std::ostream& operator<<(std::ostream& ostr, const LayeredGraph& graph) {
+  ostr << "layered graph:" << std::endl;
+  for (const auto& node : graph) {
+    switch (node.type) {
+      case LayeredGraphNodeType::Head: {
+        ostr << "Head: " << node.head.id << " (" << node.head.level << ")"
+             << std::endl;
+        break;
+      }
+      case LayeredGraphNodeType::Neighbor: {
+        ostr << "Neighbor: " << node.neighbor.neighbor_head_idx << " ("
+             << node.neighbor.flow << " of " << node.neighbor.capacity << ")"
+             << std::endl;
+        break;
+      }
+      case LayeredGraphNodeType::Tombstone: {
+        ostr << "Tombstone" << std::endl;
+        break;
+      }
+    }
+  }
+
+  return ostr;
 }
 
 }  // namespace debt_simpl

@@ -15,6 +15,7 @@ namespace debt_simpl {
 
 void DebtGraphNode::AddDebt(uint64_t ower_id, Cents amount) {
   debts_[ower_id] += amount;
+  total_debt_ += amount;
 }
 
 Cents DebtGraphNode::Debt(uint64_t ower_id) const {
@@ -26,8 +27,14 @@ Cents DebtGraphNode::Debt(uint64_t ower_id) const {
   }
 }
 
+Cents DebtGraphNode::TotalDebt() const {
+  return total_debt_;
+}
+
 void DebtGraphNode::ClearCredits() {
-  // Erase all negative debts, which are credits.
+  // Erase all negative debts, which are credits. Do not modify total_debt_,
+  // since this method is only used when translating a graph to an augmented
+  // graph.
   for (auto it = debts_.begin(); it != debts_.end();) {
     if (it->second <= 0) {
       debts_.erase(it++);
@@ -40,12 +47,14 @@ void DebtGraphNode::ClearCredits() {
 void DebtGraphNode::EraseDebt(uint64_t id) {
   const auto it = debts_.find(id);
   if (it != debts_.end()) {
+    total_debt_ -= it->second;
     debts_.erase(it);
   }
 }
 
 void DebtGraphNode::Clear() {
   debts_.clear();
+  total_debt_ = 0;
 }
 
 const absl::flat_hash_map<uint64_t, Cents>& DebtGraphNode::AllDebts() const {
@@ -58,6 +67,10 @@ uint64_t DebtGraphInternal::NumUsers() const {
 
 Cents DebtGraphInternal::Debt(uint64_t lender_id, uint64_t receiver_id) const {
   return node_list_[receiver_id].Debt(lender_id);
+}
+
+Cents DebtGraphInternal::TotalDebt(uint64_t id) const {
+  return node_list_[id].TotalDebt();
 }
 
 void DebtGraphInternal::PushFlow(uint64_t from, uint64_t to, Cents amount) {
@@ -127,6 +140,11 @@ absl::StatusOr<Cents> DebtGraph::AmountOwed(absl::string_view lender,
   ASSIGN_OR_RETURN(receiver_id, FindUserId(receiver));
 
   return Debt(lender_id, receiver_id);
+}
+
+absl::StatusOr<Cents> DebtGraph::TotalDebt(absl::string_view user) const {
+  DEFINE_OR_RETURN(uint64_t, id, FindUserId(user));
+  return DebtGraphInternal::TotalDebt(id);
 }
 
 absl::Status DebtGraph::AddTransaction(const Transaction& t) {

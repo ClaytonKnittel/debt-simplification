@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ostream>
 #include <stdint.h>
 #include <vector>
 
@@ -90,5 +91,7 @@ class LayeredGraph {
 
   std::vector<LayeredGraphNode> nodes_;
 };
+
+std::ostream& operator<<(std::ostream&, const LayeredGraph&);
 
 }  // namespace debt_simpl
