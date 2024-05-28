@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+package debt_simpl;
+
+message Transaction {
+  // The name of the user who lent the receiver money.
+  optional string lender = 1;
+
+  // The name of the user who borrowed money from the lender.
+  optional string receiver = 2;
+
+  // The amount of money lent, in cents.
+  optional int64 cents = 3;
+}
+
+message DebtList {
+  // A list of all transactions made between pairs of people.
+  repeated Transaction transactions = 1;
+}
