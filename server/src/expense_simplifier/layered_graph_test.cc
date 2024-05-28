@@ -1,4 +1,4 @@
-#include "src/expense_simplifier/layered_graph.h"
+#include "server/src/expense_simplifier/layered_graph.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -8,8 +8,8 @@
 #include "google/protobuf/text_format.h"
 #include "gtest/gtest.h"
 
-#include "src/expense_simplifier/debt_graph.h"
-#include "src/expense_simplifier/utils.h"
+#include "server/src/expense_simplifier/debt_graph.h"
+#include "server/src/expense_simplifier/utils.h"
 
 namespace debt_simpl {
 

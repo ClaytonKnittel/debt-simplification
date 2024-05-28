@@ -14,7 +14,7 @@ cc_library(
   hdrs = ["static_file_server.h"],
   srcs = ["static_file_server.cc"],
   deps = [
-    "//server/modules/httplib",
+    "//modules/httplib",
     "@abseil-cpp//absl/status:statusor",
     "@abseil-cpp//absl/strings",
   ],

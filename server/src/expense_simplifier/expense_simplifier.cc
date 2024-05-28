@@ -1,7 +1,7 @@
-#include "src/expense_simplifier/expense_simplifier.h"
+#include "server/src/expense_simplifier/expense_simplifier.h"
 
-#include "src/expense_simplifier/debt_graph.h"
-#include "src/expense_simplifier/layered_graph.h"
+#include "server/src/expense_simplifier/debt_graph.h"
+#include "server/src/expense_simplifier/layered_graph.h"
 
 namespace debt_simpl {
 

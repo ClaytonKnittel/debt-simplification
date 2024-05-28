@@ -5,8 +5,8 @@
 #include "absl/strings/str_cat.h"
 #include "grpcpp/server_builder.h"
 
-#include "src/service.h"
-#include "src/static_file_server.h"
+#include "server/src/service.h"
+#include "server/src/static_file_server.h"
 
 std::unique_ptr<grpc::Server> MakeRpcServer(const std::string& addr,
                                             uint16_t port) {
