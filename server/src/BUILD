@@ -7,6 +7,9 @@ cc_binary(
     "@abseil-cpp//absl/strings",
     "@com_github_grpc_grpc//:grpc++",
   ],
+  data = [
+    "//client:client_static",
+  ],
 )
 
 cc_library(

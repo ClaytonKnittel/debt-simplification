@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "compile-proto": "mkdir -p dist/gen/proto && npx protoc --ts_out dist/gen/proto/ --proto_path ../server/proto ../server/proto/*.proto",
+    "compile-proto": "mkdir -p dist/gen/proto && npx protoc --ts_out dist/gen/proto/ --proto_path ../proto ../proto/*.proto",
     "generate-proto-types": "npx tsc --target es6 --module nodenext -d dist/gen/proto/* --declarationDir dist/@types/proto/ --emitDeclarationOnly --outDir dist/gen/proto",
     "generate-proto": "npm run compile-proto && npm run generate-proto-types",
     "format": "npx prettier --write .",

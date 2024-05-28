@@ -25,4 +25,3 @@ bazel_dep(name = "rules_pkg", version = "0.10.1")
 register_toolchains(
   "//toolchain:cc_toolchain_for_linux_x86_64"
 )
-

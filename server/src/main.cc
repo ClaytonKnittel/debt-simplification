@@ -28,7 +28,7 @@ int main() {
   const uint16_t sfs_port = 3000;
   const uint16_t rpc_port = 3001;
 
-  auto file_server = StaticFileServer::New("../client/dist/dev/static");
+  auto file_server = StaticFileServer::New("client/dist/dev/static");
   auto rpc_server = MakeRpcServer(addr, rpc_port);
 
   file_server->Listen(addr, sfs_port);
