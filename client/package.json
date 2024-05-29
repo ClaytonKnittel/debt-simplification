@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "mk-proto-dirs": "mkdir -p dist/gen/proto && mkdir -p dist/@types/proto",
-    "compile-proto": "npx protoc --js_out=import_style=commonjs,binary:dist/gen/proto --grpc-web_out=import_style=commonjs+dts,mode=grpcweb:dist/@types/proto -I ../proto ../proto/*.proto",
-    "move-proto-artifacts": "mv dist/@types/proto/*.js dist/gen/proto/",
-    "generate-proto": "npm run mk-proto-dirs && npm run compile-proto && npm run move-proto-artifacts",
+    "compile-proto": "npx protoc --js_out=import_style=commonjs,binary:dist/gen/proto --grpc-web_out=import_style=commonjs+dts,mode=grpcweb:dist/gen/proto -I ../proto ../proto/*.proto",
+    "generate-proto": "npm run mk-proto-dirs && npm run compile-proto",
     "format": "npx prettier --write .",
     "lint": "npx eslint .",
     "generate-css-types": "npx tcm -s -o dist/@types ./src",

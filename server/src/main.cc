@@ -24,7 +24,7 @@ std::unique_ptr<grpc::Server> MakeRpcServer(const std::string& addr,
 }
 
 int main() {
-  const std::string addr = "0.0.0.0";
+  const std::string addr = "10.0.0.181";
   const uint16_t sfs_port = 3000;
   const uint16_t rpc_port = 3001;
 

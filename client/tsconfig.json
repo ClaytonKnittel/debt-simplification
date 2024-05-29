@@ -19,7 +19,7 @@
     "noEmitOnError": true,
     "jsx": "react-jsx",
     "baseUrl": "./",
-    "rootDirs": ["./src", "./dist/@types"],
+    "rootDirs": ["./src"],
     "paths": {
       "client/*": ["./src/*"],
       "proto/*": ["./dist/gen/proto/*"],
