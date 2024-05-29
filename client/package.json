@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "compile-proto": "mkdir -p dist/gen/proto && npx protoc --ts_out dist/gen/proto/ --proto_path ../proto ../proto/*.proto",
-    "generate-proto-types": "npx tsc --target es6 --module nodenext -d dist/gen/proto/* --declarationDir dist/@types/proto/ --emitDeclarationOnly --outDir dist/gen/proto",
-    "generate-proto": "npm run compile-proto && npm run generate-proto-types",
+    "mk-proto-dirs": "mkdir -p dist/gen/proto && mkdir -p dist/@types/proto",
+    "compile-proto": "npx protoc --js_out=import_style=commonjs,binary:dist/gen/proto --grpc-web_out=import_style=commonjs+dts,mode=grpcweb:dist/@types/proto -I ../proto ../proto/*.proto",
+    "move-proto-artifacts": "mv dist/@types/proto/*.js dist/gen/proto/",
+    "generate-proto": "npm run mk-proto-dirs && npm run compile-proto && npm run move-proto-artifacts",
     "format": "npx prettier --write .",
     "lint": "npx eslint .",
     "generate-css-types": "npx tcm -s -o dist/@types ./src",
@@ -30,6 +31,8 @@
     ]
   },
   "dependencies": {
+    "google-protobuf": "^3.21.1",
+    "grpc-web": "^1.5.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0"
@@ -57,6 +60,7 @@
     "html-webpack-plugin": "^5.6.0",
     "postcss-loader": "^7.3.4",
     "prettier": "^3.1.1",
+    "protoc-gen-grpc-web": "^1.5.0",
     "style-loader": "^3.3.3",
     "ts-essentials": "^9.4.1",
     "typed-css-modules": "^0.8.1",
