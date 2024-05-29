@@ -18,7 +18,7 @@ std::unique_ptr<grpc::Server> MakeRpcServer(const std::string& addr,
   builder.RegisterService(&service);
 
   auto server = builder.BuildAndStart();
-  std::cout << "RPC server listening on " << addr << std::endl;
+  std::cout << "RPC server listening on " << addr << ":" << port << std::endl;
 
   return server;
 }
@@ -26,7 +26,7 @@ std::unique_ptr<grpc::Server> MakeRpcServer(const std::string& addr,
 int main() {
   const std::string addr = "10.0.0.181";
   const uint16_t sfs_port = 3000;
-  const uint16_t rpc_port = 3001;
+  const uint16_t rpc_port = 3002;
 
   auto file_server = StaticFileServer::New("client/dist/dev/static");
   auto rpc_server = MakeRpcServer(addr, rpc_port);
