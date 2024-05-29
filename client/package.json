@@ -46,6 +46,7 @@
     "@babel/preset-typescript": "^7.23.3",
     "@protobuf-ts/plugin": "^2.9.3",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@types/google-protobuf": "^3.15.12",
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
     "@types/react-helmet": "^6.1.11",
