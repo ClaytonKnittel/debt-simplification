@@ -108,6 +108,16 @@ def _impl(ctx):
         ],
       ),
       flag_set(
+        actions = all_link_actions,
+        flag_groups = [
+          flag_group(
+            flags = [
+              "-lm",
+            ],
+          ),
+        ],
+      ),
+      flag_set(
         actions = all_compile_actions,
         flag_groups = [flag_group(flags = ["-DNDEBUG", "-O3"])],
         with_features = [with_feature_set(features = ["opt"])],

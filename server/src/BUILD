@@ -1,6 +1,6 @@
 cc_binary(
-  name = "main",
-  srcs = ["main.cc"],
+  name = "server_main",
+  srcs = ["server_main.cc"],
   deps = [
     ":service",
     ":static_file_server",
@@ -30,5 +30,19 @@ cc_library(
   deps = [
     "//proto:service_cc_grpc",
     "@com_github_grpc_grpc//:grpc++",
+  ],
+)
+
+cc_binary(
+  name = "splitwise_simplifier",
+  srcs = ["splitwise_simplifier.cc"],
+  deps = [
+    "//proto:debts_cc_proto",
+    "//server/src/expense_simplifier:debt_graph",
+    "//server/src/csv",
+    "@abseil-cpp//absl/flags:flag",
+    "@abseil-cpp//absl/flags:parse",
+    "@abseil-cpp//absl/status:statusor",
+    "@abseil-cpp//absl/strings",
   ],
 )
