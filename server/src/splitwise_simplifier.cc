@@ -112,7 +112,8 @@ int main(int argc, char* argv[]) {
   const debt_simpl::DebtList minimal_transactions =
       solver.MinimalTransactions().AllDebts();
   for (const auto& transaction : minimal_transactions.transactions()) {
-    std::cout << transaction.lender() << std::endl;
+    std::cout << transaction.receiver() << " owes " << transaction.lender()
+              << " " << transaction.cents() << "c" << std::endl;
   }
   return 0;
 }

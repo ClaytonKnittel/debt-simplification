@@ -172,6 +172,9 @@ const DebtList DebtGraph::AllDebts() const {
   }
 
   for (const auto& edge : DebtGraphInternal::AllDebts()) {
+    if (edge.debt <= 0) {
+      continue;
+    }
     Transaction& transaction = *debts.add_transactions();
     transaction.set_lender(id_to_username[edge.lender_id]);
     transaction.set_receiver(id_to_username[edge.receiver_id]);
