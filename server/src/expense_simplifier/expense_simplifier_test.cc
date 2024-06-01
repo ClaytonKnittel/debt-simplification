@@ -171,4 +171,57 @@ TEST_F(TestExpenseSimplifier, TwoMinimalTransactions) {
               IsOkAndHolds(1));
 }
 
+TEST_F(TestExpenseSimplifier, ManyToOne) {
+  ASSERT_OK_AND_DEFINE(ExpenseSimplifier, solver, CreateFromString(R"(
+    transactions {
+      lender: "a"
+      receiver: "b"
+      cents: 1
+    }
+    transactions {
+      lender: "a"
+      receiver: "c"
+      cents: 2
+    }
+    transactions {
+      lender: "a"
+      receiver: "d"
+      cents: 5
+    }
+    transactions {
+      lender: "a"
+      receiver: "e"
+      cents: 12
+    }
+    transactions {
+      lender: "a"
+      receiver: "f"
+      cents: 7
+    }
+    transactions {
+      lender: "c"
+      receiver: "b"
+      cents: 2
+    }
+    transactions {
+      lender: "d"
+      receiver: "b"
+      cents: 5
+    }
+    transactions {
+      lender: "e"
+      receiver: "b"
+      cents: 12
+    }
+    transactions {
+      lender: "f"
+      receiver: "b"
+      cents: 7
+    })"));
+
+  EXPECT_EQ(solver.MinimalTransactions().AllDebts().transactions_size(), 1);
+  EXPECT_THAT(solver.MinimalTransactions().AmountOwed("a", "b"),
+              IsOkAndHolds(1 + 2 + 5 + 12 + 7));
+}
+
 }  // namespace debt_simpl

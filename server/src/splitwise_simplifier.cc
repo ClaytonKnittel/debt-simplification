@@ -97,23 +97,33 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  for (const auto& transaction : debts->transactions()) {
-    std::cout << transaction.lender() << " lent " << transaction.receiver()
-              << " " << transaction.cents() << " cents" << std::endl;
-  }
+  // for (const auto& transaction : debts->transactions()) {
+  //   std::cout << transaction.lender() << " lent " << transaction.receiver()
+  //             << " " << transaction.cents() << " cents" << std::endl;
+  // }
 
   auto graph = debt_simpl::DebtGraph::BuildFromProto(debts.value());
   if (!graph.ok()) {
     std::cerr << "Build graph failed: " << graph.status() << std::endl;
     return -1;
   }
+
+  const debt_simpl::DebtList initial_transactions = graph.value().AllDebts();
+  std::cout << "initial transactions:" << std::endl;
+  for (const auto& transaction : initial_transactions.transactions()) {
+    std::cout << transaction.receiver() << " owes " << transaction.lender()
+              << " " << transaction.cents() << "c" << std::endl;
+  }
+
   debt_simpl::ExpenseSimplifier solver(std::move(graph.value()));
 
   const debt_simpl::DebtList minimal_transactions =
       solver.MinimalTransactions().AllDebts();
+  std::cout << std::endl << "final transactions:" << std::endl;
   for (const auto& transaction : minimal_transactions.transactions()) {
     std::cout << transaction.receiver() << " owes " << transaction.lender()
               << " " << transaction.cents() << "c" << std::endl;
   }
+
   return 0;
 }
