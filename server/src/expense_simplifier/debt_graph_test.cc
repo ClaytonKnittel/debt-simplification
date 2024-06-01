@@ -163,7 +163,7 @@ TEST_F(TestAugmentedDebtGraph, DebtFlow) {
   ASSERT_OK_AND_DEFINE(uint64_t, bob_id, graph.FindUserId("bob"));
 
   AugmentedDebtGraph augmented_graph = std::move(graph);
-  augmented_graph.PushFlow(bob_id, alice_id, 10);
+  augmented_graph.PushFlow(alice_id, bob_id, 10);
 
   EXPECT_EQ(augmented_graph.TotalDebt(alice_id), -90);
   EXPECT_EQ(augmented_graph.TotalDebt(bob_id), 90);

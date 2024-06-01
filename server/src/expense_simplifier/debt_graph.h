@@ -64,7 +64,7 @@ class DebtGraphInternal {
   Cents TotalDebt(uint64_t id) const;
 
   // Pushes flow of money from `from` to `to`. This adds `amount` debt owed to
-  // `to` by `from`. This can be used to offset debt `from` owes `to`.
+  // `to` by `from`. This can be used to offset debt `to` owes `from`.
   void PushFlow(uint64_t from, uint64_t to, Cents amount);
 
   // Erases any edge between the two users, if one exists.
@@ -107,9 +107,9 @@ class DebtGraph : public DebtGraphInternal {
 
   static absl::StatusOr<DebtGraph> BuildFromProto(const DebtList& debt_list);
 
-  // Returns the amount of money `receiver` owes `lender`.
-  absl::StatusOr<Cents> AmountOwed(absl::string_view lender,
-                                   absl::string_view receiver) const;
+  // Returns the amount of money `from` owes `to`.
+  absl::StatusOr<Cents> AmountOwed(absl::string_view to,
+                                   absl::string_view from) const;
 
   // Returns the total amount of money this user owes other users. May be
   // negative if they are owed money.
@@ -120,6 +120,9 @@ class DebtGraph : public DebtGraphInternal {
   // Given a user's name, returns the unique id of the user, or an error if
   // that user doesn't exist.
   absl::StatusOr<uint64_t> FindUserId(absl::string_view username) const;
+
+  // Returns all debts between all users in the graph.
+  const DebtList AllDebts() const;
 
  private:
   // Given a user's name, returns the unique id of the user, creating a new

@@ -117,7 +117,7 @@ void DebtGraphInternal::ClearCredits(uint64_t lender_id) {
   node_list_[lender_id].ClearCredits();
 }
 
-void DebtGraphInternal::AddDebt(uint64_t lender_id, uint64_t receiver_id,
+void DebtGraphInternal::AddDebt(uint64_t receiver_id, uint64_t lender_id,
                                 Cents amount) {
   node_list_[receiver_id].AddDebt(lender_id, amount);
 }
@@ -133,13 +133,13 @@ absl::StatusOr<DebtGraph> DebtGraph::BuildFromProto(const DebtList& debt_list) {
   return graph;
 }
 
-absl::StatusOr<Cents> DebtGraph::AmountOwed(absl::string_view lender,
-                                            absl::string_view receiver) const {
-  uint64_t lender_id, receiver_id;
-  ASSIGN_OR_RETURN(lender_id, FindUserId(lender));
-  ASSIGN_OR_RETURN(receiver_id, FindUserId(receiver));
+absl::StatusOr<Cents> DebtGraph::AmountOwed(absl::string_view to,
+                                            absl::string_view from) const {
+  uint64_t to_id, from_id;
+  ASSIGN_OR_RETURN(to_id, FindUserId(to));
+  ASSIGN_OR_RETURN(from_id, FindUserId(from));
 
-  return Debt(receiver_id, lender_id);
+  return Debt(from_id, to_id);
 }
 
 absl::StatusOr<Cents> DebtGraph::TotalDebt(absl::string_view user) const {
@@ -151,7 +151,7 @@ absl::Status DebtGraph::AddTransaction(const Transaction& t) {
   uint64_t lender_id = FindOrAssignUserId(t.lender());
   uint64_t receiver_id = FindOrAssignUserId(t.receiver());
 
-  PushFlow(lender_id, receiver_id, t.cents());
+  PushFlow(receiver_id, lender_id, t.cents());
   return absl::OkStatus();
 }
 
@@ -162,6 +162,23 @@ absl::StatusOr<uint64_t> DebtGraph::FindUserId(
     return absl::InternalError(absl::StrFormat("No such user %s", username));
   }
   return it->second;
+}
+
+const DebtList DebtGraph::AllDebts() const {
+  DebtList debts;
+  absl::flat_hash_map<uint64_t, std::string> id_to_username;
+  for (const auto& [username, id] : id_map_) {
+    id_to_username.insert({ id, username });
+  }
+
+  for (const auto& edge : DebtGraphInternal::AllDebts()) {
+    Transaction& transaction = *debts.add_transactions();
+    transaction.set_lender(id_to_username[edge.lender_id]);
+    transaction.set_receiver(id_to_username[edge.receiver_id]);
+    transaction.set_cents(edge.debt);
+  }
+
+  return debts;
 }
 
 uint64_t DebtGraph::FindOrAssignUserId(std::string username) {

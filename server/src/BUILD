@@ -38,6 +38,7 @@ cc_binary(
   srcs = ["splitwise_simplifier.cc"],
   deps = [
     "//proto:debts_cc_proto",
+    "//server/src/expense_simplifier",
     "//server/src/expense_simplifier:debt_graph",
     "//server/src/csv",
     "@abseil-cpp//absl/flags:flag",

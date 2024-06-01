@@ -14,6 +14,7 @@
 #include "proto/debts.pb.h"
 #include "server/src/csv/csv.h"
 #include "server/src/expense_simplifier/debt_graph.h"
+#include "server/src/expense_simplifier/expense_simplifier.h"
 
 ABSL_FLAG(std::optional<std::string>, input_csv, std::nullopt,
           "The splitwise-exported CSV file of expenses.");
@@ -21,10 +22,6 @@ ABSL_FLAG(std::optional<std::string>, input_csv, std::nullopt,
 absl::StatusOr<debt_simpl::DebtList> BuildDebtListFromSplitwiseExpenseReport(
     const std::string& report_path) {
   rapidcsv::Document document(report_path);
-  std::cout << "Columns: " << document.GetColumnCount() << std::endl;
-  for (size_t i = 0; i < document.GetColumnCount(); i++) {
-    std::cout << document.GetColumnName(i) << std::endl;
-  }
 
   const size_t category_column = document.GetColumnIdx("Category");
 
@@ -34,7 +31,7 @@ absl::StatusOr<debt_simpl::DebtList> BuildDebtListFromSplitwiseExpenseReport(
     const std::vector<std::string> row = document.GetRow<std::string>(i);
     if (row.size() != document.GetColumnCount() ||
         document.GetCell<std::string>(category_column, i) == "Payment" ||
-        document.GetCell<std::string>(category_column, i) == "") {
+        document.GetCell<std::string>(category_column, i) == " ") {
       // Ignore payment columns.
       continue;
     }
@@ -62,25 +59,23 @@ absl::StatusOr<debt_simpl::DebtList> BuildDebtListFromSplitwiseExpenseReport(
     }
 
     if (payer_idx == SIZE_MAX) {
-      std::cerr << "Expected payer in row " << i << std::endl;
       return absl::InternalError(absl::StrCat("Expected payer in row ", i));
     }
 
     for (size_t j = 0; j < balances.size(); j++) {
-      std::cout << balances[j] << ", ";
       if (j != payer_idx) {
         if (balances[j] > 0) {
           return absl::InternalError(
               absl::StrCat("Unexpected multiple payers in row ", i));
+        } else if (balances[j] == 0) {
+          continue;
         }
-        debt_simpl::Transaction transaction;
+        debt_simpl::Transaction& transaction = *debts.add_transactions();
         transaction.set_lender(document.GetColumnName(payer_idx + 5));
         transaction.set_receiver(document.GetColumnName(j + 5));
         transaction.set_cents(-balances[j]);
-        debts.add_transactions();
       }
     }
-    std::cout << std::endl;
   }
 
   return debts;
@@ -97,5 +92,27 @@ int main(int argc, char* argv[]) {
 
   const absl::StatusOr<debt_simpl::DebtList> debts =
       BuildDebtListFromSplitwiseExpenseReport(input_csv.value());
+  if (!debts.ok()) {
+    std::cerr << "Parse debts failed: " << debts.status() << std::endl;
+    return -1;
+  }
+
+  for (const auto& transaction : debts->transactions()) {
+    std::cout << transaction.lender() << " lent " << transaction.receiver()
+              << " " << transaction.cents() << " cents" << std::endl;
+  }
+
+  auto graph = debt_simpl::DebtGraph::BuildFromProto(debts.value());
+  if (!graph.ok()) {
+    std::cerr << "Build graph failed: " << graph.status() << std::endl;
+    return -1;
+  }
+  debt_simpl::ExpenseSimplifier solver(std::move(graph.value()));
+
+  const debt_simpl::DebtList minimal_transactions =
+      solver.MinimalTransactions().AllDebts();
+  for (const auto& transaction : minimal_transactions.transactions()) {
+    std::cout << transaction.lender() << std::endl;
+  }
   return 0;
 }
