@@ -20,12 +20,19 @@ void ExpenseSimplifier::BuildMinimalTransactions(AugmentedDebtGraph&& graph) {
   std::vector<DebtGraphEdge> edges = graph.AllDebts();
   std::sort(edges.begin(), edges.end(),
             [&graph](const DebtGraphEdge& e1, const DebtGraphEdge& e2) {
-              int64_t cmp_key1 = std::abs(graph.TotalDebt(e1.lender_id) -
-                                          graph.TotalDebt(e1.receiver_id));
-              int64_t cmp_key2 = std::abs(graph.TotalDebt(e2.lender_id) -
-                                          graph.TotalDebt(e2.receiver_id));
-              return cmp_key1 == cmp_key2 ? e1.debt < e2.debt
-                                          : cmp_key1 < cmp_key2;
+              Cents dl1 = graph.TotalDebt(e1.lender_id);
+              Cents dr1 = graph.TotalDebt(e1.receiver_id);
+              Cents dl2 = graph.TotalDebt(e2.lender_id);
+              Cents dr2 = graph.TotalDebt(e2.receiver_id);
+
+              uint32_t score1 = (dl1 < 0) + (dr1 > 0);
+              uint32_t score2 = (dl2 < 0) + (dr2 > 0);
+              int64_t cmp_key1 = std::abs(dl1 - dr1);
+              int64_t cmp_key2 = std::abs(dl2 - dr2);
+              return score1 != score2
+                         ? score1 < score2
+                         : (cmp_key1 != cmp_key2 ? cmp_key1 < cmp_key2
+                                                 : e1.debt < e2.debt);
             });
 
   while (!edges.empty()) {
