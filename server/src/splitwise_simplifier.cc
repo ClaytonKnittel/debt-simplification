@@ -97,11 +97,6 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  // for (const auto& transaction : debts->transactions()) {
-  //   std::cout << transaction.lender() << " lent " << transaction.receiver()
-  //             << " " << transaction.cents() << " cents" << std::endl;
-  // }
-
   auto graph = debt_simpl::DebtGraph::BuildFromProto(debts.value());
   if (!graph.ok()) {
     std::cerr << "Build graph failed: " << graph.status() << std::endl;

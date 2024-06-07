@@ -47,25 +47,13 @@ void ExpenseSimplifier::BuildMinimalTransactions(AugmentedDebtGraph&& graph) {
       continue;
     }
 
-    // std::cout << "Exploring " << lender_id << " lent " << receiver_id
-    //           << std::endl;
-
     uint64_t total_flow = 0;
     while (true) {
-      // std::cout << "Graph:" << std::endl;
-      // for (const auto& x : graph.AllDebts()) {
-      //   std::cout << " " << x.lender_id << " lent " << x.receiver_id << " "
-      //             << x.debt << "c" << std::endl;
-      // }
-
       const LayeredGraph blocking_flow =
           LayeredGraph::ConstructBlockingFlow(graph, receiver_id, lender_id);
       if (blocking_flow.size() == 0) {
         break;
       }
-
-      // std::cout << "found blocking flow of " << blocking_flow.ComputeFlow()
-      //           << "c" << std::endl;
 
       uint64_t payer_id;
       for (const LayeredGraphNode& node : blocking_flow) {
@@ -77,8 +65,6 @@ void ExpenseSimplifier::BuildMinimalTransactions(AugmentedDebtGraph&& graph) {
         const uint64_t neighbor_id =
             blocking_flow[node.neighbor.neighbor_head_idx].head.id;
         graph.PushFlow(neighbor_id, payer_id, node.neighbor.flow);
-        // std::cout << "  " << payer_id << " owes " << neighbor_id << " "
-        //           << node.neighbor.flow << "c" << std::endl;
       }
 
       total_flow += blocking_flow.ComputeFlow();

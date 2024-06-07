@@ -96,11 +96,8 @@ LayeredGraph LayeredGraph::ConstructBlockingFlow(
       }
 
       const auto neighbor_it = visited_nodes.find(neighbor_id);
-      // std::cout << "  Neighbor " << neighbor_id << std::endl;
       if (neighbor_it != visited_nodes.end()) {
         if (neighbor_it->second != depth + 1) {
-          // std::cout << "    Skipping from depth " << neighbor_it->second
-          //           << std::endl;
           continue;
         }
       } else {
@@ -128,7 +125,6 @@ LayeredGraph LayeredGraph::ConstructBlockingFlow(
   // Remove all visited nodes with depth == sink_depth, except for the sink.
   for (auto it = visited_nodes.begin(); it != visited_nodes.end();) {
     if (it->first != sink && it->second == sink_depth) {
-      // std::cout << "erasing " << it->first << std::endl;
       visited_nodes.erase(it++);
     } else {
       it++;
@@ -142,8 +138,6 @@ LayeredGraph LayeredGraph::ConstructBlockingFlow(
   for (auto it = layered_graph.nodes_.rbegin();
        it != layered_graph.nodes_.rend(); ++it) {
     if (it->type == LayeredGraphNodeType::Head) {
-      // std::cout << "head " << it->head.id << " with " << num_neighbors
-      //           << " neighbors" << std::endl;
       if (it->head.id != sink && num_neighbors == 0) {
         visited_nodes.erase(it->head.id);
         it->type = LayeredGraphNodeType::Tombstone;
@@ -168,41 +162,9 @@ LayeredGraph LayeredGraph::ConstructBlockingFlow(
     }
   }
 
-  // std::cout << "first layered graph:" << std::endl;
-  // uint64_t idxx = 0;
-  // for (const auto& node : layered_graph) {
-  //   switch (node.type) {
-  //     case debt_simpl::LayeredGraphNodeType::Head: {
-  //       std::cout << idxx << " Head: " << node.head.id << " ("
-  //                 << node.head.level << ")" << std::endl;
-  //       break;
-  //     }
-  //     case debt_simpl::LayeredGraphNodeType::Neighbor: {
-  //       std::cout << idxx
-  //                 << " Neighbor: " << node.neighbor._internal_neighbor_id
-  //                 << " (" << node.neighbor.capacity << ")" << std::endl;
-  //       break;
-  //     }
-  //     case debt_simpl::LayeredGraphNodeType::Tombstone: {
-  //       std::cout << idxx << " Tombstone" << std::endl;
-  //       break;
-  //     }
-  //   }
-  //   idxx++;
-  // }
-
-  // std::cout << "Node id to idx off by a little" << std::endl;
-  // for (const auto& node : visited_nodes) {
-  //   std::cout << "Node: " << node.first << ", " << node.second << " ("
-  //             << node.second - num_tombstones << ")" << std::endl;
-  // }
-
-  // std::cout << "num tombstones: " << num_tombstones << std::endl;
-
   // Update all neighbors with neighbor_head_idx to point to the head idx of the
   // neighbor instead of the id, and remove all tombstones.
   for (uint64_t i = 0, j = 0; i < layered_graph.nodes_.size(); i++) {
-    // std::cout << "i: " << i << ", j: " << j << std::endl;
     LayeredGraphNode node = layered_graph.nodes_.at(i);
     switch (node.type) {
       case LayeredGraphNodeType::Head:
@@ -214,9 +176,6 @@ LayeredGraph LayeredGraph::ConstructBlockingFlow(
         // shift to the right after removal of tombstones, by the total number
         // of tombstones, which is the difference in indices between shifting to
         // the right and shifting to the left.
-        // std::cout << "Updating neighbor " << node.neighbor.neighbor_head_idx
-        //           << " to " << node_it->second << " - " << num_tombstones
-        //           << std::endl;
         node.neighbor.neighbor_head_idx = node_it->second - num_tombstones;
         break;
       }
@@ -250,10 +209,6 @@ LayeredGraph LayeredGraph::ConstructBlockingFlow(
   while (!stack.empty()) {
     StackElement element = stack.back();
     stack.pop_back();
-
-    // std::cout << "Exploring " << element.node_idx << ", "
-    //           << element.cur_neighbor_idx << ", " << element.flow << ", "
-    //           << element.capacity << std::endl;
 
     if (element.cur_neighbor_idx == layered_graph.nodes_.size()) {
       // This is the sink.
